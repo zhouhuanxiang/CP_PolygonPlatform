@@ -318,53 +318,53 @@ void gb_generateTriagleMesh(CP_Plane &plane, CP_TriagleMesh &mesh)
 	mesh.m_triagleIDArray.push_back(CP_Triagle(0, vnum - 3, vnum - 2));
 	mesh.m_triagleIDArray.push_back(CP_Triagle(0, vnum - 2, vnum - 1));
 	mesh.m_triagleIDArray.push_back(CP_Triagle(0, vnum - 1, vnum - 3));
-	mesh.m_triagleIDArray[0].m_neighbors[0] = &mesh.m_triagleIDArray[2];
-	mesh.m_triagleIDArray[0].m_neighbors[1] = NULL;
-	mesh.m_triagleIDArray[0].m_neighbors[2] = &mesh.m_triagleIDArray[1];
-	mesh.m_triagleIDArray[1].m_neighbors[0] = &mesh.m_triagleIDArray[0];
-	mesh.m_triagleIDArray[1].m_neighbors[1] = NULL;
-	mesh.m_triagleIDArray[1].m_neighbors[2] = &mesh.m_triagleIDArray[2];
-	mesh.m_triagleIDArray[2].m_neighbors[0] = &mesh.m_triagleIDArray[1];
-	mesh.m_triagleIDArray[2].m_neighbors[1] = NULL;
-	mesh.m_triagleIDArray[2].m_neighbors[2] = &mesh.m_triagleIDArray[0];
-	mesh.m_vertexArray[0].m_triagles.push_back(&mesh.m_triagleIDArray[0]);
-	mesh.m_vertexArray[0].m_triagles.push_back(&mesh.m_triagleIDArray[1]);
-	mesh.m_vertexArray[0].m_triagles.push_back(&mesh.m_triagleIDArray[2]);
-	mesh.m_vertexArray[vnum - 3].m_triagles.push_back(&mesh.m_triagleIDArray[0]);
-	mesh.m_vertexArray[vnum - 3].m_triagles.push_back(&mesh.m_triagleIDArray[2]);
-	mesh.m_vertexArray[vnum - 2].m_triagles.push_back(&mesh.m_triagleIDArray[0]);
-	mesh.m_vertexArray[vnum - 2].m_triagles.push_back(&mesh.m_triagleIDArray[1]);
-	mesh.m_vertexArray[vnum - 1].m_triagles.push_back(&mesh.m_triagleIDArray[1]);
-	mesh.m_vertexArray[vnum - 1].m_triagles.push_back(&mesh.m_triagleIDArray[2]);
+	mesh.m_triagleIDArray[0].m_neighbors[0] = 2;
+	mesh.m_triagleIDArray[0].m_neighbors[1] = -1;
+	mesh.m_triagleIDArray[0].m_neighbors[2] = 1;
+	mesh.m_triagleIDArray[1].m_neighbors[0] = 0;
+	mesh.m_triagleIDArray[1].m_neighbors[1] = -1;
+	mesh.m_triagleIDArray[1].m_neighbors[2] = 2;
+	mesh.m_triagleIDArray[2].m_neighbors[0] = 1;
+	mesh.m_triagleIDArray[2].m_neighbors[1] = -1;
+	mesh.m_triagleIDArray[2].m_neighbors[2] = 0;
+	mesh.m_vertexArray[0].m_triagles.push_back(0);
+	mesh.m_vertexArray[0].m_triagles.push_back(1);
+	mesh.m_vertexArray[0].m_triagles.push_back(2);
+	mesh.m_vertexArray[vnum - 3].m_triagles.push_back(0);
+	mesh.m_vertexArray[vnum - 3].m_triagles.push_back(2);
+	mesh.m_vertexArray[vnum - 2].m_triagles.push_back(0);
+	mesh.m_vertexArray[vnum - 2].m_triagles.push_back(1);
+	mesh.m_vertexArray[vnum - 1].m_triagles.push_back(1);
+	mesh.m_vertexArray[vnum - 1].m_triagles.push_back(2);
 
 	for (int idPoint = 1; idPoint < vnum - 4; idPoint++)
 	{
 		gb_querySubdivision(plane, idPoint);
 		auto triagles = gb_findTriagleContainingPoint(plane, mesh, idPoint, plane.m_queryResult);
 		// TODO
-		//if (triagles.second == NULL)
+		//if (triagles.second < 0)
 		if (true)
 		{
 			// 创建3个新三角形
-			mesh.m_triagleIDArray.push_back(CP_Triagle(idPoint, triagles.first->m_points[0], triagles.first->m_points[1]));
-			mesh.m_triagleIDArray.push_back(CP_Triagle(idPoint, triagles.first->m_points[1], triagles.first->m_points[2]));
-			mesh.m_triagleIDArray.push_back(CP_Triagle(idPoint, triagles.first->m_points[2], triagles.first->m_points[0]));
+			mesh.m_triagleIDArray.push_back(CP_Triagle(idPoint, mesh.tri(triagles.first).m_points[0], mesh.tri(triagles.first).m_points[1]));
+			mesh.m_triagleIDArray.push_back(CP_Triagle(idPoint, mesh.tri(triagles.first).m_points[1], mesh.tri(triagles.first).m_points[2]));
+			mesh.m_triagleIDArray.push_back(CP_Triagle(idPoint, mesh.tri(triagles.first).m_points[2], mesh.tri(triagles.first).m_points[0]));
 			int triNum = mesh.m_triagleIDArray.size();
-			CP_Triagle* newTris[3];
-			newTris[0] = &mesh.m_triagleIDArray[triNum - 3];
-			newTris[1] = &mesh.m_triagleIDArray[triNum - 2];
-			newTris[2] = &mesh.m_triagleIDArray[triNum - 1];
+			int newTris[3];
+			newTris[0] = triNum - 3;
+			newTris[1] = triNum - 2;
+			newTris[2] = triNum - 1;
 			// 跟新三角形之间的相邻关系
 			for (int i = 0; i < 3; i++)
 			{
-				newTris[i]->m_neighbors[0] = newTris[(i + 2) % 3];
-				newTris[i]->m_neighbors[1] = triagles.first->m_neighbors[i];
-				newTris[i]->m_neighbors[2] = newTris[(i + 1) % 3];
+				mesh.tri(newTris[i]).m_neighbors[0] = newTris[(i + 2) % 3];
+				mesh.tri(newTris[i]).m_neighbors[1] = mesh.tri(triagles.first).m_neighbors[i];
+				mesh.tri(newTris[i]).m_neighbors[2] = newTris[(i + 1) % 3];
 				for (int j = 0; j < 3; j++)
 				{
-					if (triagles.first->m_neighbors[i]->m_neighbors[j] == triagles.first)
+					if (mesh.tri(mesh.tri(triagles.first).m_neighbors[i]).m_neighbors[j] == triagles.first)
 					{
-						triagles.first->m_neighbors[i]->m_neighbors[j] == newTris[i];
+						mesh.tri(mesh.tri(triagles.first).m_neighbors[i]).m_neighbors[j] == newTris[i];
 						break;
 					}
 				}
@@ -376,40 +376,23 @@ void gb_generateTriagleMesh(CP_Plane &plane, CP_TriagleMesh &mesh)
 			}
 			for (int i = 0; i < 3; i++)
 			{
-				for (auto iter = mesh.m_vertexArray[triagles.first->m_points[i]].m_triagles.begin();
-					iter != mesh.m_vertexArray[triagles.first->m_points[i]].m_triagles.end();
+				for (auto iter = mesh.m_vertexArray[mesh.tri(triagles.first).m_points[i]].m_triagles.begin();
+					iter != mesh.m_vertexArray[mesh.tri(triagles.first).m_points[i]].m_triagles.end();
 					iter++)
 				{
 					if (*iter == triagles.first)
 					{
-						mesh.m_vertexArray[triagles.first->m_points[i]].m_triagles.erase(iter);
+						mesh.m_vertexArray[mesh.tri(triagles.first).m_points[i]].m_triagles.erase(iter);
 						break;
 					}
 				}
-				mesh.m_vertexArray[triagles.first->m_points[i]].m_triagles.push_back(newTris[(i + 2) % 3]);
-				mesh.m_vertexArray[triagles.first->m_points[i]].m_triagles.push_back(newTris[i]);
+				mesh.m_vertexArray[mesh.tri(triagles.first).m_points[i]].m_triagles.push_back(newTris[(i + 2) % 3]);
+				mesh.m_vertexArray[mesh.tri(triagles.first).m_points[i]].m_triagles.push_back(newTris[i]);
 			}
-			// 删除原三角形
-			for (auto iter = mesh.m_triagleIDArray.begin(); iter != mesh.m_triagleIDArray.end(); iter++)
-			{
-				if (&(*iter) == triagles.first)
-				{
-					mesh.m_triagleIDArray.erase(iter);
-				}
-			}
+			// TODO：删除原三角形？
 		}
 		else
 		{
-			// 创建3个新三角形
-			mesh.m_triagleIDArray.push_back(CP_Triagle(idPoint, triagles.first->m_points[0], triagles.first->m_points[1]));
-			mesh.m_triagleIDArray.push_back(CP_Triagle(idPoint, triagles.first->m_points[1], triagles.first->m_points[2]));
-			mesh.m_triagleIDArray.push_back(CP_Triagle(idPoint, triagles.first->m_points[2], triagles.first->m_points[0]));
-			int triNum = mesh.m_triagleIDArray.size();
-			CP_Triagle* newTris[3];
-			newTris[0] = &mesh.m_triagleIDArray[triNum - 3];
-			newTris[1] = &mesh.m_triagleIDArray[triNum - 2];
-			newTris[2] = &mesh.m_triagleIDArray[triNum - 1];
-			// 跟新三角形之间的相邻关系
 		}
 
 		gb_legalizeTriagleMesh();
@@ -419,18 +402,18 @@ void gb_generateTriagleMesh(CP_Plane &plane, CP_TriagleMesh &mesh)
 	gb_finalizeTriagleMesh();
 }
 
-pair<CP_Triagle*, CP_Triagle*> gb_findTriagleContainingPoint(CP_Plane &plane, CP_TriagleMesh &mesh, int idPoint, int idVertex)
+Pair_Int gb_findTriagleContainingPoint(CP_Plane &plane, CP_TriagleMesh &mesh, int idPoint, int idVertex)
 {
 	CP_MeshVertex vertex = mesh.m_vertexArray[idVertex];
 	CP_Point p = plane.m_points[idPoint];
-	pair<CP_Triagle*, CP_Triagle*> result = pair<CP_Triagle*, CP_Triagle*>(NULL, NULL);
+	Pair_Int result = Pair_Int(-1, -1);
 	for (auto iter : vertex.m_triagles)
 	{
 		// 采用重心坐标判断点在三角形内外
 		// https://en.wikipedia.org/wiki/Barycentric_coordinate_system
-		CP_Point p1 = plane.m_points[iter->m_points[0]];
-		CP_Point p2 = plane.m_points[iter->m_points[1]];
-		CP_Point p3 = plane.m_points[iter->m_points[2]];
+		CP_Point p1 = plane.m_points[mesh.tri(iter).m_points[0]];
+		CP_Point p2 = plane.m_points[mesh.tri(iter).m_points[1]];
+		CP_Point p3 = plane.m_points[mesh.tri(iter).m_points[2]];
 		double lambda1 = ((p2.m_y - p3.m_y) * (p.m_x - p3.m_x) + (p3.m_x - p2.m_x) * (p.m_y - p3.m_y))
 			/ ((p2.m_y - p3.m_y) * (p1.m_x - p3.m_x) + (p3.m_x - p2.m_x) * (p1.m_y - p3.m_y));
 		double lambda2 = ((p3.m_y - p1.m_y) * (p.m_x - p3.m_x) + (p1.m_x - p3.m_x) * (p.m_y - p3.m_y))
@@ -438,11 +421,11 @@ pair<CP_Triagle*, CP_Triagle*> gb_findTriagleContainingPoint(CP_Plane &plane, CP
 		double lambda3 = 1 - lambda1 - lambda2;
 		if (lambda1 >= 0 && lambda2 >= 0 && lambda3 >= 0)
 		{
-			if (result.first == NULL)
+			if (result.first < 0)
 			{
 				result.first = iter;
 			}
-			else if (result.second == NULL)
+			else if (result.second < 0)
 			{
 				result.second = iter;
 			}
@@ -453,7 +436,7 @@ pair<CP_Triagle*, CP_Triagle*> gb_findTriagleContainingPoint(CP_Plane &plane, CP
 		}
 	}
 
-	if (result.first == NULL)
+	if (result.first < 0)
 	{
 		cout << "未找到所属的三角形!\n";
 	}

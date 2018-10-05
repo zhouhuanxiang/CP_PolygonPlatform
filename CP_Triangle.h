@@ -15,7 +15,7 @@ class CP_Triagle
 {
 public:
 	int m_points[3];
-	CP_Triagle* m_neighbors[3];
+	int m_neighbors[3];
 public:
 	CP_Triagle() { m_points[0] = 0; m_points[1] = 0; m_points[2] = 0; }
 	CP_Triagle(int p0, int p1, int p2) { m_points[0] = p0; m_points[1] = p1; m_points[2] = p2; }
@@ -27,7 +27,7 @@ typedef vector<CP_Triagle*> VT_TriaglePointerArray;
 class CP_MeshVertex
 {
 public:
-	VT_TriaglePointerArray m_triagles;
+	VT_IntArray m_triagles;
 public:
 	CP_MeshVertex() { }
 };
@@ -45,6 +45,7 @@ public:
 	CP_TriagleMesh() : m_polygon(NULL) { }
 	void mb_clear() { m_polygon = NULL; m_triagleIDArray.clear(); m_vertexArray.clear(); }
 	void mb_buildTriagleMesh(CP_Polygon& pn);
+	CP_Triagle& tri(int i) { return m_triagleIDArray[i]; }
 }; // 类CP_TriagleMesh定义结束
 
 class CP_PlaneGrid
@@ -107,7 +108,7 @@ extern double gb_distancePointCell(CP_Plane &plane, Pair_Int coord1, int idPoint
 extern double gb_distancePointCell(CP_Plane &plane, Pair_Int coord1, Pair_Int coord2, int idPoint);
 // 生成三角剖分
 extern void gb_generateTriagleMesh(CP_Plane &plane, CP_TriagleMesh &mesh);
-extern pair<CP_Triagle*, CP_Triagle*> gb_findTriagleContainingPoint(CP_Plane &plane, CP_TriagleMesh &mesh, int idPoint, int idVertex);
+extern Pair_Int gb_findTriagleContainingPoint(CP_Plane &plane, CP_TriagleMesh &mesh, int idPoint, int idVertex);
 // 合法化三角剖分
 extern void gb_legalizeTriagleMesh();
 // 生成三角网格
