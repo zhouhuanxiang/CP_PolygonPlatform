@@ -84,7 +84,10 @@ END_MESSAGE_MAP()
 CCP_PolygonPlatformView::CCP_PolygonPlatformView()
 {
 	// TODO: 在此处添加构造代码
-
+	AllocConsole();
+	freopen("conin$", "r", stdin);
+	freopen("conout$", "w", stdout);
+	freopen("conout$", "w", stderr);
 }
 
 CCP_PolygonPlatformView::~CCP_PolygonPlatformView()
@@ -221,19 +224,19 @@ void CCP_PolygonPlatformView::OnDraw(CDC* pDC)
 	GetClientRect(&r);
 	if (pDoc->m_flagShowTriangleFace)
 	{
-		CBrush brush(RGB(155, 155, 50));
-		CBrush* brushOld = (CBrush*)pDC->SelectObject(&brush);;
-		CPoint p[3];
-		p[0].x = 100;
-		p[0].y = 100;
-		p[1].x = 200;
-		p[1].y = 100;
-		p[2].x = 200;
-		p[2].y = 200;
-		CRgn rgn;
-		rgn.CreatePolygonRgn(p, 3, ALTERNATE);
-		pDC->FillRgn(&rgn, &brush);
-		pDC->SelectObject(brushOld);
+		std::cout << "draw" << pDoc->m_mesh.m_triagleIDArray.size() << "\n";
+		for (auto iter : pDoc->m_mesh.m_triagleIDArray)
+		{
+			VT_PointArray pa(3);
+			for (int i = 0; i < 3; i++)
+			{
+				pa[i] = pDoc->m_plane.pt(iter.m_points[i]);
+			}
+			gb_drawPointArrayLine(pDC, pa,
+				pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
+				200, 0, 255,
+				5);
+		}
 	} // if (pDoc->m_flagShowTriangleFace)结束
 	if (!pDoc->m_flagShowSelect)
 	{
@@ -1725,6 +1728,22 @@ void CCP_PolygonPlatformView::OnViewTFace()
 	if (!pDoc)
 		return;
 	pDoc->m_flagShowTriangleFace ^= true;
+
+	pDoc->m_mesh = CP_TriagleMesh();
+	pDoc->m_plane = CP_Plane();
+	if (pDoc->m_a.m_pointArray.size())
+	{
+		gb_generateTriagleMesh(pDoc->m_plane, pDoc->m_mesh, pDoc->m_a);
+	}
+	//else if (pDoc->m_b.m_pointArray.size())
+	//{
+
+	//}
+	else
+	{
+		mb_statusSetText("没有有效的多边形", "请输入有效的多边形");
+	}
+
 	Invalidate(); // 刷新
 }
 

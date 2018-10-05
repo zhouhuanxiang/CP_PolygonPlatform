@@ -23,6 +23,10 @@ public:
 	bool m_flagSelect; // true: 已经拾取到; false: 没有拾取任何东西。
 	int  m_flagSelectType;
 	// 0: 没有设置; 1: 点; 2: 环; 3: 区域; 4: 多边形; 5: 剖分三角形。
+	// //////////////////////////////////////////////////////////////
+	// 下面变量不被保存
+	CP_TriagleMesh m_mesh;
+	CP_Plane m_plane;
 
 	int  m_flagSelectPolygon, m_flagSelectRegion, m_flagSelectID;
 	// 定位拾取的内容

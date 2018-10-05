@@ -39,6 +39,7 @@ class CP_TriagleMesh
 {
 public:
 	VT_TriagleArray m_triagleIDArray;
+	vector<bool> m_triagleFlag;
 	VT_MeshVertexArray m_vertexArray;
 	CP_Polygon* m_polygon;
 public:
@@ -87,10 +88,11 @@ public:
 	double m_distance;
 public:
 	CP_Plane() { }
+	CP_Point pt(int i) { return m_points[i]; }
 }; // 类CP_Plane定义结束
 
 // 读取点集并随机化
-extern void gb_getDelaunayVertices(CP_Plane &plane);
+extern void gb_getDelaunayVertices(CP_Plane &plane, CP_TriagleMesh &mesh, CP_Polygon& pn);
 extern void gb_randomizeDelaunayVertices(CP_Plane &plane);
 // 查找网格坐标
 extern Pair_Int gb_findCoord1l(CP_Plane &plane, int idPoint);
@@ -107,11 +109,13 @@ extern void gb_floodFillSubdivision2l(CP_Plane &plane, Pair_Int coord1, Pair_Int
 extern double gb_distancePointCell(CP_Plane &plane, Pair_Int coord1, int idPoint);
 extern double gb_distancePointCell(CP_Plane &plane, Pair_Int coord1, Pair_Int coord2, int idPoint);
 // 生成三角剖分
-extern void gb_generateTriagleMesh(CP_Plane &plane, CP_TriagleMesh &mesh);
+extern void gb_generateTriagleMesh(CP_Plane &plane, CP_TriagleMesh &mesh, CP_Polygon& pn);
 extern Pair_Int gb_findTriagleContainingPoint(CP_Plane &plane, CP_TriagleMesh &mesh, int idPoint, int idVertex);
 // 合法化三角剖分
 extern void gb_legalizeTriagleMesh();
 // 生成三角网格
 extern void gb_finalizeTriagleMesh();
+//
+extern void gb_debugMesh(CP_TriagleMesh &mesh);
 
 #endif
