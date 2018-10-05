@@ -1,0 +1,544 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#ifndef APSTUDIO_INVOKED
+#include "targetver.h"
+#endif
+#include "afxres.h"
+#include "verrsrc.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// ä¸­æ–‡(ç®€ä½“ï¼Œä¸­å›½) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\CP_PolygonPlatform.ico"
+
+IDR_CP_PolygonPlatfTYPE ICON                    "res\\CP_PolygonPlatformDoc.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_MAINFRAME           BITMAP                  "res\\Toolbar.bmp"
+
+IDR_MAINFRAME_256       BITMAP                  "res\\Toolbar256.bmp"
+
+IDB_MAIN                BITMAP                  "res\\main.bmp"
+
+IDB_FILELARGE           BITMAP                  "res\\filelarge.bmp"
+
+IDB_FILESMALL           BITMAP                  "res\\filesmall.bmp"
+
+IDB_WRITELARGE          BITMAP                  "res\\writelarge.bmp"
+
+IDB_WRITESMALL          BITMAP                  "res\\writesmall.bmp"
+
+IDB_BUTTONS             BITMAP                  "res\\buttons.bmp"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_MAINFRAME TOOLBAR 16, 15
+BEGIN
+    BUTTON      ID_FILE_NEW
+    BUTTON      ID_FILE_OPEN
+    BUTTON      ID_FILE_SAVE
+    SEPARATOR
+    BUTTON      ID_EDIT_CUT
+    BUTTON      ID_EDIT_COPY
+    BUTTON      ID_EDIT_PASTE
+    SEPARATOR
+    BUTTON      ID_FILE_PRINT
+    BUTTON      ID_APP_ABOUT
+END
+
+IDR_MAINFRAME_256 TOOLBAR 16, 15
+BEGIN
+    BUTTON      ID_FILE_NEW
+    BUTTON      ID_FILE_OPEN
+    BUTTON      ID_FILE_SAVE
+    SEPARATOR
+    BUTTON      ID_EDIT_CUT
+    BUTTON      ID_EDIT_COPY
+    BUTTON      ID_EDIT_PASTE
+    SEPARATOR
+    BUTTON      ID_FILE_PRINT
+    BUTTON      ID_APP_ABOUT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINFRAME MENU
+BEGIN
+    POPUP "ÎÄ¼þ(&F)"
+    BEGIN
+        MENUITEM "ÐÂ½¨(&N)\tCtrl+N",              ID_FILE_NEW
+        MENUITEM "´ò¿ª(&O)...\tCtrl+O",           ID_FILE_OPEN
+        MENUITEM "±£´æ(&S)\tCtrl+S",              ID_FILE_SAVE
+        MENUITEM "Áí´æÎª(&A)...",                  ID_FILE_SAVE_AS
+        MENUITEM SEPARATOR
+        MENUITEM "´òÓ¡(&P)...\tCtrl+P",           ID_FILE_PRINT
+        MENUITEM "´òÓ¡Ô¤ÀÀ(&V)",                    ID_FILE_PRINT_PREVIEW
+        MENUITEM "´òÓ¡ÉèÖÃ(&R)...",                 ID_FILE_PRINT_SETUP
+        MENUITEM SEPARATOR
+        MENUITEM "×î½üµÄÎÄ¼þ",                       ID_FILE_MRU_FILE1, GRAYED
+        MENUITEM SEPARATOR
+        MENUITEM "ÍË³ö(&X)",                      ID_APP_EXIT
+    END
+    POPUP "±à¼­(&E)"
+    BEGIN
+        MENUITEM "³·Ïû(&U)\tCtrl+Z",              ID_EDIT_UNDO
+        MENUITEM SEPARATOR
+        MENUITEM "¼ôÇÐ(&T)\tCtrl+X",              ID_EDIT_CUT
+        MENUITEM "¸´ÖÆ(&C)\tCtrl+C",              ID_EDIT_COPY
+        MENUITEM "Õ³Ìù(&P)\tCtrl+V",              ID_EDIT_PASTE
+    END
+    POPUP "ÊÓÍ¼(&V)"
+    BEGIN
+        MENUITEM "×´Ì¬À¸(&S)",                     ID_VIEW_STATUS_BAR
+        POPUP "Ó¦ÓÃ³ÌÐòÍâ¹Û(&A)"
+        BEGIN
+            MENUITEM "Windows 2000(&2)",            ID_VIEW_APPLOOK_WIN_2000
+            MENUITEM "Office XP(&X)",               ID_VIEW_APPLOOK_OFF_XP
+            MENUITEM "Windows XP(&W)",              ID_VIEW_APPLOOK_WIN_XP
+            MENUITEM "Office 2003(&3)",             ID_VIEW_APPLOOK_OFF_2003
+            MENUITEM "Visual Studio 200&5",         ID_VIEW_APPLOOK_VS_2005
+            MENUITEM "Visual Studio 200&8",         ID_VIEW_APPLOOK_VS_2008
+            POPUP "Office 2007(&7)"
+            BEGIN
+                MENUITEM "À¶É«ÑùÊ½(&B)",                    ID_VIEW_APPLOOK_OFF_2007_BLUE
+                MENUITEM "ºÚÉ«ÑùÊ½(&L)",                    ID_VIEW_APPLOOK_OFF_2007_BLACK
+                MENUITEM "ÒøÉ«ÑùÊ½(&S)",                    ID_VIEW_APPLOOK_OFF_2007_SILVER
+                MENUITEM "Ë®ÂÌÉ«ÑùÊ½(&A)",                   ID_VIEW_APPLOOK_OFF_2007_AQUA
+            END
+        END
+    END
+    POPUP "°ïÖú(&H)"
+    BEGIN
+        MENUITEM "¹ØÓÚ CP_PolygonPlatform(&A)...", ID_APP_ABOUT
+    END
+END
+
+IDR_POPUP_EDIT MENU
+BEGIN
+    POPUP "±à¼­"
+    BEGIN
+        MENUITEM "¼ôÇÐ(&T)\tCtrl+X",              ID_EDIT_CUT
+        MENUITEM "¸´ÖÆ(&C)\tCtrl+C",              ID_EDIT_COPY
+        MENUITEM "Õ³Ìù(&P)\tCtrl+V",              ID_EDIT_PASTE
+    END
+END
+
+IDR_WINDOWS_MENU MENU
+BEGIN
+    MENUITEM "ÐÂ½¨´°¿Ú(&N)",                    ID_WINDOW_NEW
+END
+
+IDR_HELP_MENU MENU
+BEGIN
+    MENUITEM "¹ØÓÚ CP_PolygonPlatform(&A)...", ID_APP_ABOUT
+END
+
+IDR_THEME_MENU MENU
+BEGIN
+    MENUITEM "Office 2007 (À¶É«ÑùÊ½)(&B)",      ID_VIEW_APPLOOK_OFF_2007_BLUE
+    MENUITEM "Office 2007 (ºÚÉ«ÑùÊ½)(&L)",      ID_VIEW_APPLOOK_OFF_2007_BLACK
+    MENUITEM "Office 2007 (ÒøÉ«ÑùÊ½)(&S)",      ID_VIEW_APPLOOK_OFF_2007_SILVER
+    MENUITEM "Office 2007 (Ë®ÂÌÉ«ÑùÊ½)(&A)",     ID_VIEW_APPLOOK_OFF_2007_AQUA
+    MENUITEM "Windows 7(&D)",               ID_VIEW_APPLOOK_WINDOWS_7
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_MAINFRAME ACCELERATORS
+BEGIN
+    "N",            ID_FILE_NEW,            VIRTKEY, CONTROL
+    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL
+    "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL
+    "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL
+    "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL
+    "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL
+    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL
+    "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL
+    VK_BACK,        ID_EDIT_UNDO,           VIRTKEY, ALT
+    VK_DELETE,      ID_EDIT_CUT,            VIRTKEY, SHIFT
+    VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL
+    VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT
+    VK_F6,          ID_NEXT_PANE,           VIRTKEY 
+    VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 170, 62
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "¹ØÓÚ CP_PolygonPlatform"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,14,14,21,20
+    LTEXT           "CP_PolygonPlatform£¬1.0 °æ",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2018",IDC_STATIC,42,26,114,8
+    DEFPUSHBUTTON   "È·¶¨",IDOK,113,41,50,14,WS_GROUP
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080404B0"
+        BEGIN
+            VALUE "CompanyName", "TODO: <¹«Ë¾Ãû>"
+            VALUE "FileDescription", "CP_PolygonPlatform"
+            VALUE "FileVersion", "1.0.0.1"
+            VALUE "InternalName", "CP_PolygonPlatform.exe"
+            VALUE "LegalCopyright", "TODO:  (C) <¹«Ë¾Ãû>¡£  ±£ÁôËùÓÐÈ¨Àû¡£"
+            VALUE "OriginalFilename", "CP_PolygonPlatform.exe"
+            VALUE "ProductName", "TODO: <²úÆ·Ãû>"
+            VALUE "ProductVersion", "1.0.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x804, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 163
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 55
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Ribbon
+//
+
+IDR_RIBBON              RT_RIBBON_XML           "res\\ribbon.mfcribbon-ms"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDP_OLE_INIT_FAILED     "OLE ³õÊ¼»¯Ê§°Ü¡£  ÇëÈ·±£ OLE ¿âÊÇÕýÈ·µÄ°æ±¾¡£"
+END
+
+STRINGTABLE
+BEGIN
+    IDR_MAINFRAME           "CP_PolygonPlatform\n\nCP_PolygonPlatf\nCP_PolygonPlatform Files (*.txt)\n.txt\nCPPolygonPlatform.Document\nCP_PolygonPlatform.Document"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_APP_TITLE       "CP_PolygonPlatform"
+    AFX_IDS_IDLEMESSAGE     "¾ÍÐ÷"
+END
+
+STRINGTABLE
+BEGIN
+    ID_INDICATOR_EXT        "EXT"
+    ID_INDICATOR_CAPS       "CAP"
+    ID_INDICATOR_NUM        "NUM"
+    ID_INDICATOR_SCRL       "SCRL"
+    ID_INDICATOR_OVR        "OVR"
+    ID_INDICATOR_REC        "REC"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_NEW             "´´½¨ÐÂÎÄµµ\nÐÂ½¨"
+    ID_FILE_OPEN            "´ò¿ªÏÖÓÐÎÄµµ\n´ò¿ª"
+    ID_FILE_CLOSE           "¹Ø±Õ»î¶¯ÎÄµµ\n¹Ø±Õ"
+    ID_FILE_SAVE            "±£´æ»î¶¯ÎÄµµ\n±£´æ"
+    ID_FILE_SAVE_AS         "ÓÃÐÂÃû³Æ±£´æ»î¶¯ÎÄµµ\nÁí´æÎª"
+    ID_FILE_PAGE_SETUP      "¸ü¸Ä´òÓ¡Ñ¡Ïî\nÒ³ÃæÉèÖÃ"
+    ID_FILE_PRINT_SETUP     "¸ü¸Ä´òÓ¡»úÑ¡ÏîºÍ´òÓ¡Ñ¡Ïî\n´òÓ¡ÉèÖÃ"
+    ID_FILE_PRINT           "´òÓ¡»î¶¯ÎÄµµ\n´òÓ¡"
+    ID_FILE_PRINT_DIRECT    "Ê¹ÓÃµ±Ç°Ñ¡Ïî´òÓ¡»î¶¯ÎÄµµ\n¿ìËÙ´òÓ¡"
+    ID_FILE_PRINT_PREVIEW   "ÏÔÊ¾ÕûÒ³\n´òÓ¡Ô¤ÀÀ"
+END
+
+STRINGTABLE
+BEGIN
+    ID_APP_ABOUT            "ÏÔÊ¾³ÌÐòÐÅÏ¢¡¢°æ±¾ºÅºÍ°æÈ¨ÐÅÏ¢\n¹ØÓÚ"
+    ID_APP_EXIT             "ÍË³öÓ¦ÓÃ³ÌÐò£»ÌáÊ¾±£´æÎÄµµ\nÍË³ö"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_MRU_FILE1       "´ò¿ª´ËÎÄµµ"
+    ID_FILE_MRU_FILE2       "´ò¿ª´ËÎÄµµ"
+    ID_FILE_MRU_FILE3       "´ò¿ª´ËÎÄµµ"
+    ID_FILE_MRU_FILE4       "´ò¿ª´ËÎÄµµ"
+    ID_FILE_MRU_FILE5       "´ò¿ª´ËÎÄµµ"
+    ID_FILE_MRU_FILE6       "´ò¿ª´ËÎÄµµ"
+    ID_FILE_MRU_FILE7       "´ò¿ª´ËÎÄµµ"
+    ID_FILE_MRU_FILE8       "´ò¿ª´ËÎÄµµ"
+    ID_FILE_MRU_FILE9       "´ò¿ª´ËÎÄµµ"
+    ID_FILE_MRU_FILE10      "´ò¿ª´ËÎÄµµ"
+    ID_FILE_MRU_FILE11      "´ò¿ª´ËÎÄµµ"
+    ID_FILE_MRU_FILE12      "´ò¿ª´ËÎÄµµ"
+    ID_FILE_MRU_FILE13      "´ò¿ª´ËÎÄµµ"
+    ID_FILE_MRU_FILE14      "´ò¿ª´ËÎÄµµ"
+    ID_FILE_MRU_FILE15      "´ò¿ª´ËÎÄµµ"
+    ID_FILE_MRU_FILE16      "´ò¿ª´ËÎÄµµ"
+END
+
+STRINGTABLE
+BEGIN
+    ID_NEXT_PANE            "ÇÐ»»µ½ÏÂÒ»¸ö´°¸ñ\nÏÂÒ»´°¸ñ"
+    ID_PREV_PANE            "ÇÐ»»»ØÉÏÒ»¸ö´°¸ñ\nÉÏÒ»´°¸ñ"
+END
+
+STRINGTABLE
+BEGIN
+    ID_WINDOW_SPLIT         "½«»î¶¯´°¿Ú²ð·ÖÎª¶à¸ö´°¸ñ\n²ð·Ö"
+END
+
+STRINGTABLE
+BEGIN
+    ID_EDIT_CLEAR           "Çå³ýËùÑ¡ÄÚÈÝ\nÇå³ý"
+    ID_EDIT_CLEAR_ALL       "Çå³ýÈ«²¿ÄÚÈÝ\nÈ«²¿Çå³ý"
+    ID_EDIT_COPY            "¸´ÖÆËùÑ¡ÄÚÈÝ£¬½«Æä·ÅÈë¼ôÌù°å\n¸´ÖÆ"
+    ID_EDIT_CUT             "¼ôÇÐËùÑ¡ÄÚÈÝ£¬½«Æä·ÅÈë¼ôÌù°å\n¼ôÇÐ"
+    ID_EDIT_FIND            "²éÕÒÖ¸¶¨µÄÎÄ±¾\n²éÕÒ"
+    ID_EDIT_PASTE           "²åÈë¼ôÌù°åÄÚÈÝ\nÕ³Ìù"
+    ID_EDIT_REPEAT          "ÖØ¸´ÉÏÒ»²Ù×÷\nÖØ¸´"
+    ID_EDIT_REPLACE         "ÓÃÆäËûÎÄ±¾Ìæ»»ÌØ¶¨µÄÎÄ±¾\nÌæ»»"
+    ID_EDIT_SELECT_ALL      "Ñ¡¶¨Õû¸öÎÄµµ\nÈ«Ñ¡"
+    ID_EDIT_UNDO            "³·ÏûÉÏÒ»²Ù×÷\n³·Ïû"
+    ID_EDIT_REDO            "ÖØ×öÉÏ´Î³·ÏûµÄ²Ù×÷\nÖØ×ö"
+END
+
+STRINGTABLE
+BEGIN
+    ID_VIEW_TOOLBAR         "ÏÔÊ¾»òÒþ²Ø¹¤¾ßÀ¸\nÇÐ»»¹¤¾ßÀ¸"
+    ID_VIEW_STATUS_BAR      "ÏÔÊ¾»òÒþ²Ø×´Ì¬À¸\nÇÐ»»×´Ì¬À¸"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_SCSIZE          "¸ü¸Ä´°¿Ú´óÐ¡"
+    AFX_IDS_SCMOVE          "¸ü¸Ä´°¿ÚÎ»ÖÃ"
+    AFX_IDS_SCMINIMIZE      "½«´°¿ÚËõÐ¡³ÉÍ¼±ê"
+    AFX_IDS_SCMAXIMIZE      "½«´°¿Ú·Å´óµ½×î´ó³ß´ç"
+    AFX_IDS_SCNEXTWINDOW    "ÇÐ»»µ½ÏÂÒ»¸öÎÄµµ´°¿Ú"
+    AFX_IDS_SCPREVWINDOW    "ÇÐ»»µ½ÉÏÒ»¸öÎÄµµ´°¿Ú"
+    AFX_IDS_SCCLOSE         "¹Ø±Õ»î¶¯´°¿Ú²¢ÌáÊ¾±£´æÎÄµµ"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_SCRESTORE       "½«´°¿Ú»Ö¸´µ½Õý³£´óÐ¡"
+    AFX_IDS_SCTASKLIST      "¼¤»îÈÎÎñÁÐ±í"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_PREVIEW_CLOSE   "¹Ø±Õ´òÓ¡Ô¤ÀÀÄ£Ê½\nÈ¡ÏûÔ¤ÀÀ"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STATUS_PANE1        "´°¸ñ 1"
+    IDS_STATUS_PANE2        "´°¸ñ 2"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_EDIT_MENU           "±à¼­"
+END
+
+STRINGTABLE
+BEGIN
+    ID_COMBO_AorB           "Ñ¡Ôñ¹¤×÷¶à±ßÐÎ"
+    ID_TOLERANCE            "Á½µã¾àÀëÐ¡ÓÚ¸ÃÖµÔòÈÏÎªÖØºÏ\nÎ»ÖÃÈÝ²î"
+    ID_EDGE_NUMBER          "ÉèÖÃ´´½¨µÄÕý¶à±ßÐÎ±ßÊý"
+    ID_NEW_RIGHT_OUTLOOP    "ÐÂ½¨Õý¶à±ßÐÎÍâ»·"
+    ID_NEW_RIGHT_INLOOP     "ÐÂ½¨Õý¶à±ßÐÎÄÚ»·"
+    ID_SELECT_POINT         "Ê°È¡µã"
+    ID_SELECT_LOOP          "Ê°È¡»·"
+    ID_SELECT_REGION        "Ê°È¡ÇøÓò"
+    ID_SELECT_POLYGON       "Ê°È¡¶à±ßÐÎ"
+    ID_SELECT_ONLY          "Ö»ÏÔÊ¾Ê°È¡µÄÍ¼ÐÎ"
+    ID_ADD_OUTLOOP          "Ìí¼ÓÐÂÍâ»·"
+    ID_ADD_INLOOP           "Ìí¼ÓÐÂÄÚ»·"
+END
+
+STRINGTABLE
+BEGIN
+    ID_VIEW_T_FACE_EDGE     "µÚ3ÖÖÄ£Ê½: ²ÉÓÃ²»Í¬ÑÕÉ«Í¬Ê±ÏÔÊ¾ÆÊ·ÖÃæºÍ±ß\nÇÐ»»ÆÊ·ÖÃæºÍ±ßÏÔÊ¾"
+    ID_VIEW_FIT             "Õë¶ÔÆÁÄ»×ÔÊÊÓ¦ÏÔÊ¾\n×ÔÊÊÓ¦ÏÔÊ¾"
+    ID_VIEW_STANDARD        "»Ö¸´±ê×¼ÏÔÊ¾×ø±êÏµ\n»Ö¸´Ô­Ê¼×ø±êÏµ"
+    ID_SELECT_TRIANGLE      "Ê°È¡ÆÊ·ÖÈý½ÇÐÎ"
+END
+
+STRINGTABLE
+BEGIN
+    ID_ADD_POINT            "Ìí¼ÓÐÂµÄµã"
+    ID_DELETE               "É¾³ýÊ°È¡µÄÍ¼ÐÎ"
+    ID_MOVE_SAME            "ÖØºÏµÄµãÒ»ÆðÒÆ¶¯"
+    ID_CHECK                "ÅÐ¶Ï¶à±ßÐÎAºÍBÊÇ·ñºÏ·¨"
+    ID_POLYGON_UNION        "²¼¶ûÔËËã: A+B\nA+B"
+    ID_POLYGON_INTERSECTION "¼ÆËãAºÍBµÄ½»¼¯"
+    ID_POLYGON_A_B          "²¼¶ûÔËËã: A-B\nA-B"
+    ID_POLYGON_B_A          "²¼¶ûÔËËã: B-A\nB-"
+    ID_POLYGON_TRIANGULATION "¶ÔA¡¢B¼°²¼¶ûÔËËã½á¹û½øÐÐÈý½ÇÐÎÆÊ·Ö"
+    ID_VIEW_A               "ÏÔÊ¾»òÒþ²Ø¶à±ßÐÎA\nÇÐ»»AÏÔÊ¾"
+    ID_VIEW_B               "ÏÔÊ¾»òÒþ²Ø¶à±ßÐÎB\nÇÐ»»BÏÔÊ¾"
+    ID_VIEW_RESULT          "ÏÔÊ¾»òÒþ²Ø²¼¶ûÔËËã½á¹û\nÇÐ»»²¼¶ûÔËËã½á¹ûÏÔÊ¾"
+    ID_VIEW_T_EDGE          "µÚ2ÖÖÄ£Ê½: ÏÔÊ¾»òÒþ²ØÆÊ·Ö±ß\nÇÐ»»ÆÊ·Ö±ßÏÔÊ¾"
+    ID_VIEW_T_FACE          "µÚ1ÖÖÄ£Ê½: ÏÔÊ¾»òÒþ²ØÆÊ·ÖÃæ\nÇÐ»»ÆÊ·ÖÃæÏÔÊ¾"
+    ID_VIEW_POINT_ID        "ÏÔÊ¾»òÒþ²Øµã±êÊ¶\nÇÐ»»µã±êÊ¶ÏÔÊ¾"
+END
+
+#endif    // ä¸­æ–‡(ç®€ä½“ï¼Œä¸­å›½) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// è‹±è¯­(ç¾Žå›½) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#ifndef APSTUDIO_INVOKED\r\n"
+    "#include ""targetver.h""\r\n"
+    "#endif\r\n"
+    "#include ""afxres.h""\r\n"
+    "#include ""verrsrc.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)\r\n"
+    "LANGUAGE 4, 2\r\n"
+    "#include ""res\\CP_PolygonPlatform.rc2""  // ? Microsoft Visual C++ ?????\r\n"
+    "#include ""l.CHS\\afxres.rc""      // ????\r\n"
+    "#include ""l.CHS\\afxprint.rc""    // ??/??????\r\n"
+    "#if !defined(_AFXDLL)\r\n"
+    "#include ""l.CHS\\afxribbon.rc""        // MFC ?????????\r\n"
+    "#endif\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // è‹±è¯­(ç¾Žå›½) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+LANGUAGE 4, 2
+#include "res\CP_PolygonPlatform.rc2"  // Ã©ÂÅ¾ Microsoft Visual C++ Ã§Â¼â€“Ã¨Â¾â€˜Ã§Å¡â€žÃ¨Âµâ€žÃ¦ÂºÂ
+#include "l.CHS\afxres.rc"      // Ã¦Â â€¡Ã¥â€¡â€ Ã§Â»â€žÃ¤Â»Â¶
+#include "l.CHS\afxprint.rc"    // Ã¦â€°â€œÃ¥ÂÂ°/Ã¦â€°â€œÃ¥ÂÂ°Ã©Â¢â€žÃ¨Â§Ë†Ã¨Âµâ€žÃ¦ÂºÂ
+#if !defined(_AFXDLL)
+#include "l.CHS\afxribbon.rc"        // MFC Ã¥Å Å¸Ã¨Æ’Â½Ã¥Å’ÂºÃ¥â€™Å’Ã¦Å½Â§Ã¥Ë†Â¶Ã¦ÂÂ¡Ã¨Âµâ€žÃ¦ÂºÂ
+#endif
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
