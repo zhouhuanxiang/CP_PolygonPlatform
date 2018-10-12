@@ -224,7 +224,6 @@ void CCP_PolygonPlatformView::OnDraw(CDC* pDC)
 	GetClientRect(&r);
 	if (pDoc->m_flagShowTriangleFace)
 	{
-		std::cout << "draw" << pDoc->m_mesh.m_triagleIDArray.size() << "\n";
 		for (auto iter : pDoc->m_mesh.m_triagleIDArray)
 		{
 			VT_PointArray pa(3);

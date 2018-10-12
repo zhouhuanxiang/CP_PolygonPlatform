@@ -161,7 +161,6 @@ void gb_floodFillSubdivision1l(CP_Plane &plane, Pair_Int coord1, int idPoint)
 {
 	// 标记为已访问
 	plane.m_queryGrid1l.insert(coord1);
-	std::cout << "#" << coord1.first << "#" << coord1.second << "\n";
 	// 如果网格非空，先在网格内查找
 	if (plane.m_gridMap.find(coord1) != plane.m_gridMap.end())
 	{
@@ -173,13 +172,14 @@ void gb_floodFillSubdivision1l(CP_Plane &plane, Pair_Int coord1, int idPoint)
 		}
 		else
 		{
-			for (auto iter : grid.m_points1l)
+			//for (auto iter : grid.m_points1l)
+			for(int i = 0; i < grid.m_points1l.size(); i++)
 			{
-				double d = gb_distancePointPoint(plane.m_points[idPoint], plane.m_points[iter]);
+				double d = gb_distancePointPoint(plane.m_points[idPoint], plane.m_points[grid.m_points1l[i]]);
 				if (plane.m_distance > d)
 				{
 					plane.m_distance = d;
-					plane.m_queryResult = iter;
+					plane.m_queryResult = grid.m_points1l[i];
 				}
 			}
 		}
@@ -207,7 +207,6 @@ void gb_floodFillSubdivision2l(CP_Plane &plane, Pair_Int coord1, Pair_Int coord2
 {
 	// 标记为已访问
 	plane.m_queryGrid2l.insert(pair<Pair_Int, Pair_Int>(coord1, coord2));
-	std::cout << "#" << coord1.first << "#" << coord1.second << "#" << coord2.first << "#" << coord2.second << "\n";
 	// 在网格内查找
 	CP_PlaneGrid &grid = plane.m_gridMap[coord1];
 	list<int> &l = grid.m_points2l[coord2.first][coord2.second];
@@ -344,13 +343,13 @@ void gb_generateTriagleMesh(CP_Plane &plane, CP_TriagleMesh &mesh, CP_Polygon& p
 	mesh.m_vertexArray[vnum - 1].m_triagles.push_back(1);
 	mesh.m_vertexArray[vnum - 1].m_triagles.push_back(2);
 
+	Pair_Int triagles;
 	for (int idPoint = 1; idPoint < vnum - 3; idPoint++)
 	{
-		gb_debugMesh(mesh);
-		cout << "\n\n#########################\n" << idPoint << " now\n";
+		TRACE("\n\n#########################\n%d now\n", idPoint);
 		gb_querySubdivision(plane, idPoint);
-		cout << plane.m_queryResult << "\n";
-		auto triagles = gb_findTriagleContainingPoint(plane, mesh, idPoint, plane.m_queryResult);
+		triagles = gb_findTriagleContainingPoint(plane, mesh, idPoint, plane.m_queryResult);
+		VT_IntArray newTris;
 		// TODO
 		//if (triagles.second < 0)
 		if (true)
@@ -363,7 +362,7 @@ void gb_generateTriagleMesh(CP_Plane &plane, CP_TriagleMesh &mesh, CP_Polygon& p
 			mesh.m_triagleFlag.push_back(true);
 			mesh.m_triagleFlag.push_back(true);
 			int triNum = mesh.m_triagleIDArray.size();
-			VT_IntArray newTris(3);
+			newTris.resize(3);
 			newTris[0] = triNum - 3;
 			newTris[1] = triNum - 2;
 			newTris[2] = triNum - 1;
@@ -410,10 +409,12 @@ void gb_generateTriagleMesh(CP_Plane &plane, CP_TriagleMesh &mesh, CP_Polygon& p
 		{
 		}
 
-		gb_legalizeTriagleMesh();
+		TRACE("tris: %d %d\n", triagles.first, triagles.second);
+		gb_debugMesh(mesh);
+		gb_legalizeTriagleMesh(plane, mesh, newTris);
 		gb_insertToSubdivision1l(plane, idPoint);
 
-		cout << triagles.first << " " << triagles.second << "\n";
+		gb_debugMesh(mesh);
 	}
 
 	gb_finalizeTriagleMesh();
@@ -421,32 +422,32 @@ void gb_generateTriagleMesh(CP_Plane &plane, CP_TriagleMesh &mesh, CP_Polygon& p
 
 void gb_debugMesh(CP_TriagleMesh &mesh)
 {
+	TRACE("****************\n");
+	TRACE("mesh debug info\n");
+	TRACE("****************\n");
 	for (int i = 0; i < mesh.m_triagleIDArray.size(); i++)
 	{
 		if (mesh.m_triagleFlag[i])
 		{
-			std::cout << "triangle #" << i << "\n";
-			std::cout << "\tneighbor "
-				<< mesh.m_triagleIDArray[i].m_neighbors[0] << " "
-				<< mesh.m_triagleIDArray[i].m_neighbors[1] << " "
-				<< mesh.m_triagleIDArray[i].m_neighbors[2] << "\n";
-			std::cout << "\tpoint "
-				<< mesh.m_triagleIDArray[i].m_points[0] << " "
-				<< mesh.m_triagleIDArray[i].m_points[1] << " "
-				<< mesh.m_triagleIDArray[i].m_points[2] << "\n";
+			TRACE("triangle #%d \n\t neighbor %d %d %d \n\t point %d %d %d\n", 
+				i,
+				mesh.m_triagleIDArray[i].m_neighbors[0],
+				mesh.m_triagleIDArray[i].m_neighbors[1],
+				mesh.m_triagleIDArray[i].m_neighbors[2],
+				mesh.m_triagleIDArray[i].m_points[0],
+				mesh.m_triagleIDArray[i].m_points[1],
+				mesh.m_triagleIDArray[i].m_points[2]);
 		}
 	}
 	for (int i = 0; i < mesh.m_vertexArray.size(); i++)
 	{
 		if (mesh.m_vertexArray[i].m_triagles.size())
 		{
-			std::cout << "vertex #" << i << "\n";
-			std::cout << "\tface ";
+			TRACE("vertex #%d \n", i);
 			for (auto iter : mesh.m_vertexArray[i].m_triagles)
 			{
-				cout << iter << " ";
+				TRACE("%d \n", iter);
 			}
-			cout << "\n";
 		}
 	}
 }
@@ -456,38 +457,37 @@ Pair_Int gb_findTriagleContainingPoint(CP_Plane &plane, CP_TriagleMesh &mesh, in
 	CP_MeshVertex vertex = mesh.m_vertexArray[idVertex];
 	CP_Point p = plane.m_points[idPoint];
 	Pair_Int result = Pair_Int(-1, -1);
-	for (auto iter : vertex.m_triagles)
+	for (int i = 0; i < vertex.m_triagles.size(); i++)
 	{
 		// 采用重心坐标判断点在三角形内外
 		// https://en.wikipedia.org/wiki/Barycentric_coordinate_system
-		CP_Point p1 = plane.m_points[mesh.tri(iter).m_points[0]];
-		CP_Point p2 = plane.m_points[mesh.tri(iter).m_points[1]];
-		CP_Point p3 = plane.m_points[mesh.tri(iter).m_points[2]];
-		double lambda1 = ((p2.m_y - p3.m_y) * (p.m_x - p3.m_x) + (p3.m_x - p2.m_x) * (p.m_y - p3.m_y))
-			/ ((p2.m_y - p3.m_y) * (p1.m_x - p3.m_x) + (p3.m_x - p2.m_x) * (p1.m_y - p3.m_y));
-		double lambda2 = ((p3.m_y - p1.m_y) * (p.m_x - p3.m_x) + (p1.m_x - p3.m_x) * (p.m_y - p3.m_y))
-			/ ((p2.m_y - p3.m_y) * (p1.m_x - p3.m_x) + (p3.m_x - p2.m_x) * (p1.m_y - p3.m_y));
+		CP_Point p1 = plane.m_points[mesh.tri(vertex.m_triagles[i]).m_points[0]];
+		CP_Point p2 = plane.m_points[mesh.tri(vertex.m_triagles[i]).m_points[1]];
+		CP_Point p3 = plane.m_points[mesh.tri(vertex.m_triagles[i]).m_points[2]];
+		double det = (p2.m_y - p3.m_y) * (p1.m_x - p3.m_x) + (p3.m_x - p2.m_x) * (p1.m_y - p3.m_y);
+		double lambda1 = ((p2.m_y - p3.m_y) * (p.m_x - p3.m_x) + (p3.m_x - p2.m_x) * (p.m_y - p3.m_y)) / det;
+		double lambda2 = ((p3.m_y - p1.m_y) * (p.m_x - p3.m_x) + (p1.m_x - p3.m_x) * (p.m_y - p3.m_y)) / det;
 		double lambda3 = 1 - lambda1 - lambda2;
 		if (lambda1 >= 0 && lambda2 >= 0 && lambda3 >= 0)
 		{
 			if (result.first < 0)
 			{
-				result.first = iter;
+				result.first = vertex.m_triagles[i];
 			}
 			else if (result.second < 0)
 			{
-				result.second = iter;
+				result.second = vertex.m_triagles[i];
 			}
 			else
 			{
-				cout << "重心坐标计算错误!\n";
+				TRACE("重心坐标计算错误!\n");
 			}
 		}
 	}
 
 	if (result.first < 0)
 	{
-		cout << "未找到所属的三角形!\n";
+		TRACE("未找到所属的三角形!\n");
 	}
 	return result;
 }
@@ -497,31 +497,153 @@ void gb_legalizeTriagleMesh(CP_Plane &plane, CP_TriagleMesh &mesh, VT_IntArray n
 {
 	for (int i = 0; i < newTris.size(); i++)
 	{
-		CP_Triagle& tri = mesh.m_triagleIDArray[newTris[i]];
 		for (int j = 0; j < 3; j++)
 		{
-			if (tri.m_neighbors[j] > 0
-				&& !gb_emptyCircleTest(plane, mesh, tri, j))
-			{
-				gb_legalizeTriaglePair(plane, mesh, tri, j);
-			}
+			gb_emptyCircleTestAndAdjust(plane, mesh, newTris[i], j);
 		}
 	}
 }
 
-bool gb_emptyCircleTest(CP_Plane &plane, CP_TriagleMesh &mesh, CP_Triagle& tri, int neighbor)
+void gb_emptyCircleTestAndAdjust(CP_Plane &plane, CP_TriagleMesh &mesh, int idTri0, int t1)
 {
-	CP_Triagle& tri1 = mesh.m_triagleIDArray[it1];
-	CP_Triagle& tri2 = mesh.m_triagleIDArray[it2];
+	// https://en.wikipedia.org/wiki/Delaunay_triangulation
+	// https://en.wikipedia.org/wiki/Determinant
+	CP_Triagle& tri0 = mesh.tri(idTri0);
+	int idTri1 = tri0.m_neighbors[t1];
+	if (idTri1 < 0)
+		return;
+	CP_Triagle& tri1 = mesh.tri(idTri1);
 
+	// 如果是第neighbor个邻居，那么 tri 三角形的第 (neighbor + 2) % 3 个顶点为不与 tri1 相邻的顶点
+	int idPoint0 = (t1 + 2) % 3;
+	if (tri0.m_points[idPoint0] == tri1.m_points[0]
+		|| tri0.m_points[idPoint0] == tri1.m_points[1]
+		|| tri0.m_points[idPoint0] == tri1.m_points[2])
+	{
+		TRACE("本三角形的非邻接点错误!\n");
+		return;
+	}
+	CP_Point A = plane.m_points[tri1.m_points[0]];
+	CP_Point B = plane.m_points[tri1.m_points[1]];
+	CP_Point C = plane.m_points[tri1.m_points[2]];
+	CP_Point D = plane.m_points[tri0.m_points[idPoint0]];
+	double a, b, c, d, e, f, g, h, i;
+	a = A.m_x - D.m_x;
+	b = A.m_y - D.m_y;
+	c = (A.m_x - D.m_x) * (A.m_x - D.m_x) + (A.m_y - D.m_y) * (A.m_y - D.m_y);
+	d = B.m_x - D.m_x;
+	e = B.m_y - D.m_y;
+	f = (B.m_x - D.m_x) * (B.m_x - D.m_x) + (B.m_y - D.m_y) * (B.m_y - D.m_y);
+	g = C.m_x - D.m_x;
+	h = C.m_y - D.m_y;
+	i = (C.m_x - D.m_x) * (C.m_x - D.m_x) + (C.m_y - D.m_y) * (C.m_y - D.m_y);
+	double det = a * e * i + b * f * g + c * d * h - c * e * g - b * d * i - a * f * h;
+	// 这里由于是顺时针存储三角形的顶点，所以与wiki不一样
+	if (det < 0)
+	{
+		// 进行边翻转，这里不能采取新建三角形的方式，因为会破坏 gb_legalizeTriagleMesh 的最外层循环
+		// 确定tri1的非邻接定点
+		int idPoint1;
+		for (int iter = 0; iter < 3; iter++)
+		{
+			if (tri1.m_points[iter] != tri0.m_points[t1]
+				&& tri1.m_points[iter] != tri0.m_points[(t1 + 1) % 3])
+			{
+				idPoint1 = iter;
+				break;
+			}
+		}
+		if (tri1.m_points[idPoint1] == tri0.m_points[0]
+			|| tri1.m_points[idPoint1] == tri0.m_points[1]
+			|| tri1.m_points[idPoint1] == tri0.m_points[2])
+		{
+			TRACE("对三角形的非邻接点错误!\n");
+			return;
+		}
+		// 对tri和tri1的临界三角形进行修改
+		/*nb2-				-nb0			nb2-			-nb0
+			   tir1---tri0		=====>             tri0
+		  nb3-				-nb1				     |
+											       tri1
+										    nb3-			-nb1
+		*/
+		int nb0 = tri0.m_neighbors[(idPoint0 + 2) % 3];
+		int nb1 = tri0.m_neighbors[(idPoint0 + 1) % 3];
+		int nb2 = tri1.m_neighbors[idPoint1];
+		int nb3 = tri1.m_neighbors[(idPoint1 + 2) % 3];
+		if (tri1.m_neighbors[(idPoint1 + 1) % 3] != idTri0)
+		{
+			TRACE("对三角形对三角形必须为本三角形!\n");
+			return;
+		}
+		tri0.m_neighbors[0] = nb0;
+		tri0.m_neighbors[1] = idTri1;
+		tri0.m_neighbors[2] = nb2;
+		tri1.m_neighbors[0] = nb3;
+		tri1.m_neighbors[1] = idTri0;
+		tri1.m_neighbors[2] = nb1;
+		if (nb1 >= 0)
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				if (mesh.tri(nb1).m_neighbors[i] == idTri0)
+				{
+					mesh.tri(nb1).m_neighbors[i] = idTri1;
+					break;
+				}
+			}
+		}
+		if (nb2 >= 0)
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				if (mesh.tri(nb2).m_neighbors[i] == idTri1)
+				{
+					mesh.tri(nb2).m_neighbors[i] = idTri0;
+					break;
+				}
+			}
+		}
 
-	return true;
-}
-
-void gb_legalizeTriaglePair(CP_Plane &plane, CP_TriagleMesh &mesh, CP_Triagle& tri, int neighbor)
-{
-	CP_Triagle& tri1 = mesh.m_triagleIDArray[it1];
-	CP_Triagle& tri2 = mesh.m_triagleIDArray[it2];
+		// 对定点进行修改
+		// 对tri和tri1进行修改，两个三角形的第一个定点都是非邻接点
+		/* 
+		    p2                 0
+		   / | \             /    \
+		  p3 | p0  ==>       2  - 1
+	       \ | /             1  - 2
+	        p1               \    /
+	                           0
+		*/
+		int p0 = tri0.m_points[idPoint0];
+		int p1 = tri0.m_points[(idPoint0 + 1) % 3];
+		int p2 = tri0.m_points[(idPoint0 + 2) % 3];
+		int p3 = tri1.m_points[idPoint1];
+		tri0.m_points[0] = p2;
+		tri0.m_points[1] = p0;
+		tri0.m_points[2] = p3;
+		tri1.m_points[0] = p1;
+		tri1.m_points[1] = p3;
+		tri1.m_points[2] = p0;
+		mesh.pt(p0).m_triagles.push_back(idTri1);
+		mesh.pt(p3).m_triagles.push_back(idTri0);
+		for (auto iter = mesh.pt(p1).m_triagles.begin(); iter != mesh.pt(p1).m_triagles.end(); iter++)
+		{
+			if (*iter == idTri0)
+			{
+				mesh.pt(p1).m_triagles.erase(iter);
+				break;
+			}
+		}
+		for (auto iter = mesh.pt(p2).m_triagles.begin(); iter != mesh.pt(p2).m_triagles.end(); iter++)
+		{
+			if (*iter == idTri1)
+			{
+				mesh.pt(p2).m_triagles.erase(iter);
+				break;
+			}
+		}
+	}
 }
 
 // 生成三角网格

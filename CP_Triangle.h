@@ -7,7 +7,6 @@ using namespace std;
 #include <list>
 #include <map>
 #include <algorithm>
-#include <iostream>
 
 #include "CP_Polygon.h"
 
@@ -47,6 +46,7 @@ public:
 	void mb_clear() { m_polygon = NULL; m_triagleIDArray.clear(); m_vertexArray.clear(); }
 	void mb_buildTriagleMesh(CP_Polygon& pn);
 	CP_Triagle& tri(int i) { return m_triagleIDArray[i]; }
+	CP_MeshVertex& pt(int i) { return m_vertexArray[i]; }
 }; // 类CP_TriagleMesh定义结束
 
 class CP_PlaneGrid
@@ -112,7 +112,8 @@ extern double gb_distancePointCell(CP_Plane &plane, Pair_Int coord1, Pair_Int co
 extern void gb_generateTriagleMesh(CP_Plane &plane, CP_TriagleMesh &mesh, CP_Polygon& pn);
 extern Pair_Int gb_findTriagleContainingPoint(CP_Plane &plane, CP_TriagleMesh &mesh, int idPoint, int idVertex);
 // 合法化三角剖分
-extern void gb_legalizeTriagleMesh();
+extern void gb_legalizeTriagleMesh(CP_Plane &plane, CP_TriagleMesh &mesh, VT_IntArray newTris);
+extern void gb_emptyCircleTestAndAdjust(CP_Plane &plane, CP_TriagleMesh &mesh, int t1, int t2);
 // 生成三角网格
 extern void gb_finalizeTriagleMesh();
 //
