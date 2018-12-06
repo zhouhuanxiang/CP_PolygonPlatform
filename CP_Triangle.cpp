@@ -372,13 +372,15 @@ void gb_generateTriagleMesh(CP_Plane &plane, CP_TriagleMesh &mesh, CP_Polygon& p
 				mesh.tri(newTris[i]).m_neighbors[0] = newTris[(i + 2) % 3];
 				mesh.tri(newTris[i]).m_neighbors[1] = mesh.tri(triagles.first).m_neighbors[i];
 				mesh.tri(newTris[i]).m_neighbors[2] = newTris[(i + 1) % 3];
-				for (int j = 0; j < 3; j++)
+				if (mesh.tri(triagles.first).m_neighbors[i] >= 0)
 				{
-					int nb = mesh.tri(triagles.first).m_neighbors[i];
-					if (nb >= 0 && mesh.tri(nb).m_neighbors[j] == triagles.first)
+					for (int j = 0; j < 3; j++)
 					{
-						mesh.tri(mesh.tri(triagles.first).m_neighbors[i]).m_neighbors[j] == newTris[i];
-						break;
+						if (mesh.tri(mesh.tri(triagles.first).m_neighbors[i]).m_neighbors[j] == triagles.first)
+						{
+							mesh.tri(mesh.tri(triagles.first).m_neighbors[i]).m_neighbors[j] = newTris[i];
+							break;
+						}
 					}
 				}
 			}
@@ -541,6 +543,7 @@ void gb_emptyCircleTestAndAdjust(CP_Plane &plane, CP_TriagleMesh &mesh, int idTr
 	// 这里由于是顺时针存储三角形的顶点，所以与wiki不一样
 	if (det < 0)
 	{
+		TRACE("开始进行翻转\n");
 		// 进行边翻转，这里不能采取新建三角形的方式，因为会破坏 gb_legalizeTriagleMesh 的最外层循环
 		// 确定tri1的非邻接定点
 		int idPoint1;
@@ -573,7 +576,7 @@ void gb_emptyCircleTestAndAdjust(CP_Plane &plane, CP_TriagleMesh &mesh, int idTr
 		int nb3 = tri1.m_neighbors[(idPoint1 + 2) % 3];
 		if (tri1.m_neighbors[(idPoint1 + 1) % 3] != idTri0)
 		{
-			TRACE("对三角形对三角形必须为本三角形!\n");
+			TRACE("对三角形的对三角形必须为本三角形!\n");
 			return;
 		}
 		tri0.m_neighbors[0] = nb0;
