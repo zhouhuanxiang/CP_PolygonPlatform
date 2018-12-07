@@ -14,7 +14,6 @@
 
 #pragma once
 
-#include <stdio.h>
 
 class CCP_PolygonPlatformView : public CView
 {

@@ -7,116 +7,128 @@ using namespace std;
 #include <list>
 #include <map>
 #include <algorithm>
+#include <iostream>
 
 #include "CP_Polygon.h"
 
-class CP_Triagle
+class CP_MeshTriagle;
+class CP_MeshVertex;
+
+class CP_MeshTriagle
 {
 public:
-	int m_points[3];
-	int m_neighbors[3];
+	CP_MeshVertex* m_vertex[3];
+	CP_MeshTriagle* m_neighbors[3];
+	bool deleted;
 public:
-	CP_Triagle() { m_points[0] = 0; m_points[1] = 0; m_points[2] = 0; }
-	CP_Triagle(int p0, int p1, int p2) { m_points[0] = p0; m_points[1] = p1; m_points[2] = p2; }
+	CP_MeshTriagle() 
+		:deleted(false) 
+	{ 
+		m_neighbors[0] = NULL; m_neighbors[1] = NULL; m_neighbors[2] = NULL; 
+	}
+	CP_MeshTriagle(CP_MeshVertex* p0, CP_MeshVertex* p1, CP_MeshVertex* p2) 
+		:deleted(false)
+	{ 
+		m_vertex[0] = p0; m_vertex[1] = p1; m_vertex[2] = p2; 
+		m_neighbors[0] = NULL; m_neighbors[1] = NULL; m_neighbors[2] = NULL;
+	}
+	~CP_MeshTriagle()
+	{
+		del();
+	}
+	void del()
+	{
+		m_vertex[0] = m_vertex[1] = m_vertex[2] = NULL;
+		m_neighbors[0] = m_neighbors[1] = m_neighbors[2] = NULL;
+		deleted = true;
+	}
+	bool exits()
+	{
+		return !deleted;
+	}
 }; // 类CP_Triagle定义结束
 
-typedef vector<CP_Triagle> VT_TriagleArray;
-typedef vector<CP_Triagle*> VT_TriaglePointerArray;
+typedef vector<CP_MeshTriagle> VT_MeshTriagleArray;
+typedef vector<CP_MeshTriagle*> VT_MeshTriaglePointerArray;
 
 class CP_MeshVertex
 {
 public:
-	VT_IntArray m_triagles;
+	int index;
+	double m_x, m_y;
+	VT_MeshTriaglePointerArray m_triagles;
 public:
-	CP_MeshVertex() { }
+	CP_MeshVertex() :m_x(0.0), m_y(0.0), index(-1) 
+	{ 
+		m_triagles.reserve(5); 
+	};
+	CP_MeshVertex(double x, double y, int ind) 
+		:m_x(x), m_y(y), index(ind) 
+	{
+		m_triagles.reserve(5);
+	}
+	~CP_MeshVertex()
+	{
+		for (int i = 0; i < m_triagles.size(); i++)
+		{
+			m_triagles[i] = NULL;
+		}
+		m_triagles.clear();
+	}
 };
 
 typedef vector<CP_MeshVertex> VT_MeshVertexArray;
-typedef vector<vector<CP_MeshVertex> > VT_MeshVertexArrayArray;
+typedef vector<CP_MeshVertex*> VT_MeshVertexPointerArray;
 
 class CP_TriagleMesh
 {
 public:
-	VT_TriagleArray m_triagleIDArray;
-	vector<bool> m_triagleFlag;
-	VT_MeshVertexArray m_vertexArray;
+	VT_MeshTriaglePointerArray m_triagleArray;
+	VT_MeshVertexPointerArray m_vertexArray;
 	CP_Polygon* m_polygon;
 public:
 	CP_TriagleMesh() : m_polygon(NULL) { }
-	void mb_clear() { m_polygon = NULL; m_triagleIDArray.clear(); m_vertexArray.clear(); }
-	void mb_buildTriagleMesh(CP_Polygon& pn);
-	CP_Triagle& tri(int i) { return m_triagleIDArray[i]; }
-	CP_MeshVertex& pt(int i) { return m_vertexArray[i]; }
+	void mb_clear();
 }; // 类CP_TriagleMesh定义结束
 
-class CP_PlaneGrid
-{
-public:
-	VT_IntArray m_points1l;
-	vector<vector<list<int> > > m_points2l;
-public:
-	CP_PlaneGrid() { }
-	bool mb_empty() { return m_points1l.size() == 0 && m_points2l.size() == 0; }
-	bool mb_divided() { return m_points2l.size() > 0; }
-};
+extern void initTriagleMesh(CP_TriagleMesh *mesh, CP_Polygon* polygon);
 
-typedef pair<int, int> Pair_Int;
-typedef map<Pair_Int, CP_PlaneGrid> VT_PlaneGridMap;
+template <class T>
+extern void replaceByValue(T *list, int size, T from, T to);
 
-class CP_Plane
-{
-public:
-	// 整个平面的包围盒
-	double m_boxXMax;
-	double m_boxXMin;
-	double m_boxYMax;
-	double m_boxYMin;
-	// 第一层网格划分参数
-	int m_noOfCellsX1;
-	int m_noOfCellsY1;
-	double m_xSize;
-	double m_ySize;
-	// 第二层网格划分参数
-	double m_threshold;
-	// 网格数据
-	VT_PlaneGridMap m_gridMap;
-	// 临时数据
-	VT_PointArray m_points;
-	set<Pair_Int> m_queryGrid1l;
-	set<pair<Pair_Int, Pair_Int> > m_queryGrid2l;
-	int m_queryResult;
-	double m_distance;
-public:
-	CP_Plane() { }
-	CP_Point pt(int i) { return m_points[i]; }
-}; // 类CP_Plane定义结束
+template <class T>
+extern void eraseByValue(vector<T> &list, T val);
 
-// 读取点集并随机化
-extern void gb_getDelaunayVertices(CP_Plane &plane, CP_TriagleMesh &mesh, CP_Polygon& pn);
-extern void gb_randomizeDelaunayVertices(CP_Plane &plane);
-// 查找网格坐标
-extern Pair_Int gb_findCoord1l(CP_Plane &plane, int idPoint);
-extern Pair_Int gb_findCoord2l(CP_Plane &plane, int idPoint, Pair_Int coord1);
-// 初始化第一阶段划分
-extern void gb_initSubdivision(CP_Plane &plane);
-// 插入点操作：1）首先找到要插入的网格；2）再在该网格进行二阶段插入
-extern void gb_insertToSubdivision1l(CP_Plane &plane, int idPoint);
-extern void gb_insertToSubdivision2l(CP_Plane &plane, int idPoint);
-// 查找最近点
-extern void gb_querySubdivision(CP_Plane &plane, int idPoint);
-extern void gb_floodFillSubdivision1l(CP_Plane &plane, Pair_Int coord1, int idPoint);
-extern void gb_floodFillSubdivision2l(CP_Plane &plane, Pair_Int coord1, Pair_Int coord2, int idPoint);
-extern double gb_distancePointCell(CP_Plane &plane, Pair_Int coord1, int idPoint);
-extern double gb_distancePointCell(CP_Plane &plane, Pair_Int coord1, Pair_Int coord2, int idPoint);
-// 生成三角剖分
-extern void gb_generateTriagleMesh(CP_Plane &plane, CP_TriagleMesh &mesh, CP_Polygon& pn);
-extern Pair_Int gb_findTriagleContainingPoint(CP_Plane &plane, CP_TriagleMesh &mesh, int idPoint, int idVertex);
-// 合法化三角剖分
-extern void gb_legalizeTriagleMesh(CP_Plane &plane, CP_TriagleMesh &mesh, VT_IntArray newTris);
-extern void gb_emptyCircleTestAndAdjust(CP_Plane &plane, CP_TriagleMesh &mesh, int t1, int t2);
-// 生成三角网格
-extern void gb_finalizeTriagleMesh();
-//
-extern void gb_debugMesh(CP_TriagleMesh &mesh);
+extern double distanceVertex2Vertex(CP_MeshVertex *v1, CP_MeshVertex *v2);
+
+extern void findClosestPoints(CP_TriagleMesh *mesh, CP_MeshVertex *vertex, vector<pair<CP_MeshVertex*, double> > &distances);
+
+extern void getBoundingBox(CP_TriagleMesh *mesh, double &xmin, double &xmax, double &ymin, double &ymax);
+
+extern void getTriagleCoord(CP_MeshTriagle *tri, CP_MeshVertex *vertex, double &l1, double &l2, double &l3);
+
+extern bool testVertexInTriagle(CP_MeshTriagle *tri, CP_MeshVertex *vertex);
+
+extern CP_MeshTriagle* oppositeTriagle(CP_MeshTriagle *tri, CP_MeshVertex *vertex);
+
+extern CP_MeshVertex* oppositeVertex(CP_MeshTriagle *tri1, CP_MeshTriagle *tri2);
+
+extern int oppositeVertexIndex(CP_MeshTriagle *tri1, CP_MeshTriagle *tri2);
+
+extern CP_MeshTriagle* flipTriagle(CP_MeshTriagle *tri1, CP_MeshTriagle *tri2);
+
+extern void testEmptyCircumcircle(VT_MeshTriaglePointerArray &tris);
+
+extern void insertVertex(CP_TriagleMesh *mesh, CP_MeshTriagle *tri, CP_MeshVertex *vertex);
+
+extern void initialization(CP_TriagleMesh *mesh);
+
+extern void triangulation(CP_TriagleMesh *mesh);
+
+extern void finalisation(CP_TriagleMesh *mesh);
+
+extern void printVertex(CP_MeshVertex *vertex);
+
+extern void printTriagle(CP_MeshTriagle *tri);
 
 #endif

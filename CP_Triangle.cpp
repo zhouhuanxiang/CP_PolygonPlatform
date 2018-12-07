@@ -2,655 +2,384 @@
 
 #include "CP_Triangle.h"
 
-void CP_TriagleMesh::mb_buildTriagleMesh(CP_Polygon& pn)
+void CP_TriagleMesh::mb_clear()
 {
-	m_polygon = &pn;
-	//int n = pn.m_pointArray.size();
-	//if (n<3)
-	//	return;
-	//m_triagleIDArray.resize(1);
-	//m_triagleIDArray[0].m_vertices[0] = 0;
-	//m_triagleIDArray[0].m_vertices[0] = 1;
-	//m_triagleIDArray[0].m_vertices[0] = 2;
-} // 类CP_TriagleMesh的成员函数mb_buildTriagleMesh结束
-
-
-  // 读取点集并随机化
-void gb_getDelaunayVertices(CP_Plane &plane, CP_TriagleMesh &mesh, CP_Polygon& pn)
-{
-	mesh.mb_buildTriagleMesh(pn);
-	plane.m_points = pn.m_pointArray;
-}
-
-void gb_randomizeDelaunayVertices(CP_Plane &plane)
-{
-	random_shuffle(plane.m_points.begin(), plane.m_points.end());
-}
-
-// 查找网格坐标
-Pair_Int gb_findCoord1l(CP_Plane &plane, int idPoint)
-{
-	double x = plane.m_points[idPoint].m_x;
-	double y = plane.m_points[idPoint].m_y;
-	int posX = (int)((x - plane.m_boxXMin) / plane.m_xSize);
-	int posY = (int)((x - plane.m_boxYMin) / plane.m_ySize);
-	Pair_Int coord1 = Pair_Int(posX, posY);
-
-	return coord1;
-}
-
-Pair_Int gb_findCoord2l(CP_Plane &plane, int idPoint, Pair_Int coord1)
-{
-	int xSub = 4;
-	int ySub = 4;
-	double x = plane.m_points[idPoint].m_x;
-	double y = plane.m_points[idPoint].m_y;
-	double xSubSize = plane.m_xSize / xSub;
-	double ySubSize = plane.m_ySize / ySub;
-	int subPosX = (x - plane.m_boxXMin - coord1.first * plane.m_xSize) / xSubSize;
-	int subPosY = (y - plane.m_boxYMin - coord1.second * plane.m_ySize) / ySubSize;
-	subPosX = min(xSub, max(0, subPosX));
-	subPosY = min(ySub, max(0, subPosY));
-	Pair_Int coord2 = Pair_Int(subPosX, subPosY);
-
-	return coord2;
-}
-
-// 初始化第一阶段划分
-void gb_initSubdivision(CP_Plane &plane)
-{
-	int i;
-	int n = plane.m_points.size();
-	// 参数的初始化
-	plane.m_boxXMax = -1 * DBL_MAX;
-	plane.m_boxXMin = DBL_MAX;
-	plane.m_boxYMax = -1 * DBL_MAX;
-	plane.m_boxYMin = DBL_MAX;
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < m_triagleArray.size(); i++)
 	{
-		plane.m_boxXMax = max(plane.m_boxXMax, plane.m_points[i].m_x);
-		plane.m_boxXMin = min(plane.m_boxXMin, plane.m_points[i].m_x);
-		plane.m_boxYMax = max(plane.m_boxYMax, plane.m_points[i].m_y);
-		plane.m_boxYMin = min(plane.m_boxYMin, plane.m_points[i].m_y);
+		delete m_triagleArray[i];
+		m_triagleArray[i] = NULL;
 	}
-	double ratioXY = (plane.m_boxXMax - plane.m_boxXMin) / (plane.m_boxYMax - plane.m_boxYMin);
-	plane.m_noOfCellsX1 = (int)(ratioXY * sqrt(n) / 2) + 1;
-	plane.m_noOfCellsY1 = (int)(sqrt(n) / ratioXY / 2) + 1;
-	plane.m_xSize = (plane.m_boxXMax - plane.m_boxXMin) / plane.m_noOfCellsX1;
-	plane.m_ySize = (plane.m_boxYMax - plane.m_boxYMin) / plane.m_noOfCellsY1;
-	plane.m_threshold = 4 * n / (plane.m_noOfCellsX1 * plane.m_noOfCellsY1);
+	m_triagleArray.clear();
+
+	for (int i = 0; i < m_vertexArray.size(); i++)
+	{
+		delete m_vertexArray[i];
+		m_vertexArray[i] = NULL;
+	}
+	m_vertexArray.clear();
+
+	m_polygon = NULL;
 }
 
-// 插入点操作：1）首先找到要插入的网格；2）再在该网格进行二阶段插入
-void gb_insertToSubdivision1l(CP_Plane &plane, int idPoint)
+void initTriagleMesh(CP_TriagleMesh *mesh, CP_Polygon* polygon)
 {
-	Pair_Int coord1 = gb_findCoord1l(plane, idPoint);
-	// 查找要插入的网格：1）如果网格不存在，先创建该网格；2）在网格中插入
-	if (plane.m_gridMap.find(coord1) == plane.m_gridMap.end())
+	mesh->mb_clear();
+
+	mesh->m_polygon = polygon;
+	mesh->m_vertexArray.resize(mesh->m_polygon->m_pointArray.size());
+	for (int i = 0; i < mesh->m_vertexArray.size(); i++)
 	{
-		plane.m_gridMap.insert(pair<Pair_Int, CP_PlaneGrid>(coord1, CP_PlaneGrid()));
+		mesh->m_vertexArray[i] = new CP_MeshVertex(mesh->m_polygon->m_pointArray[i].m_x, mesh->m_polygon->m_pointArray[i].m_y, i);
 	}
-	gb_insertToSubdivision2l(plane, idPoint);
 }
 
-void gb_insertToSubdivision2l(CP_Plane &plane, int idPoint)
+template <class T>
+void replaceByValue(T *list, int size, T from, T to)
 {
-	Pair_Int coord1 = gb_findCoord1l(plane, idPoint);
-
-	int xSub = 4;
-	int ySub = 4;
-	int i;
-	CP_PlaneGrid &grid = plane.m_gridMap[coord1];
-
-	if (grid.mb_divided())
+	for (int i = 0; i < size; i++)
 	{
-		Pair_Int coord2 = gb_findCoord2l(plane, idPoint, coord1);
-		grid.m_points2l[coord2.first][coord2.second].push_back(idPoint);
-	}
-	else
-	{
-		grid.m_points1l.push_back(idPoint);
-		if (grid.m_points1l.size() > xSub * ySub)
+		if (*(list + i) == from)
 		{
-			grid.m_points2l.resize(xSub, vector<list<int> >(ySub, list<int>()));
-			for (int i = 0; i < grid.m_points1l.size(); i++)
-			{
-				int id = grid.m_points1l[i];
-				Pair_Int coord2 = gb_findCoord2l(plane, id, coord1);
-				grid.m_points2l[coord2.first][coord2.second].push_back(id);
-			}
-			grid.m_points1l.clear();
+			*(list + i) = to;
+			break;
 		}
 	}
 }
 
-// 查找最近点
-void gb_querySubdivision(CP_Plane &plane, int idPoint)
+template <class T>
+void eraseByValue(vector<T> &list, T val)
 {
-	int bruteLimit = 100;
-	int i;
-
-	// 每次搜索之前，清空搜索记录
-	plane.m_distance = DBL_MAX;
-	plane.m_queryResult = -1;
-	plane.m_queryGrid1l.clear();
-	plane.m_queryGrid2l.clear();
-
-	if (idPoint >= bruteLimit)
+	for (vector<T>::iterator iter = list.begin(); iter != list.end(); iter++)
 	{
-		Pair_Int coord1 = gb_findCoord1l(plane, idPoint);
-		gb_floodFillSubdivision1l(plane, coord1, idPoint);
-	}
-	else
-	{
-		// 在点数较少时采用暴力搜索
-		CP_Point idp = plane.m_points[idPoint];
-		for (i = 0; i < idPoint; i++)
+		if (*iter == val)
 		{
-			double d = gb_distancePointPoint(idp, plane.m_points[i]);
-			if (plane.m_distance > d)
-			{
-				plane.m_distance = d;
-				plane.m_queryResult = i;
-			}
-		}
-	}
-}
-
-void gb_floodFillSubdivision1l(CP_Plane &plane, Pair_Int coord1, int idPoint)
-{
-	// 标记为已访问
-	plane.m_queryGrid1l.insert(coord1);
-	// 如果网格非空，先在网格内查找
-	if (plane.m_gridMap.find(coord1) != plane.m_gridMap.end())
-	{
-		CP_PlaneGrid &grid = plane.m_gridMap[coord1];
-		if (grid.mb_divided())
-		{
-			Pair_Int coord2 = gb_findCoord2l(plane, idPoint, coord1);
-			gb_floodFillSubdivision2l(plane, coord1, coord2, idPoint);
-		}
-		else
-		{
-			//for (auto iter : grid.m_points1l)
-			for(int i = 0; i < grid.m_points1l.size(); i++)
-			{
-				double d = gb_distancePointPoint(plane.m_points[idPoint], plane.m_points[grid.m_points1l[i]]);
-				if (plane.m_distance > d)
-				{
-					plane.m_distance = d;
-					plane.m_queryResult = grid.m_points1l[i];
-				}
-			}
-		}
-	}
-	// 四近邻查找
-	Pair_Int neighbors[4] = {
-		Pair_Int(coord1.first - 1, coord1.second),
-		Pair_Int(coord1.first + 1, coord1.second),
-		Pair_Int(coord1.first, coord1.second - 1),
-		Pair_Int(coord1.first, coord1.second + 1),
-	};
-	for (int i = 0; i < 4; i++)
-	{
-		if (neighbors[i].first >= 0 && neighbors[i].first < plane.m_noOfCellsX1
-			&& neighbors[i].second >= 0 && neighbors[i].second < plane.m_noOfCellsY1
-			&& plane.m_queryGrid1l.find(neighbors[i]) == plane.m_queryGrid1l.end()
-			&& gb_distancePointCell(plane, neighbors[i], idPoint) < plane.m_distance)
-		{
-			gb_floodFillSubdivision1l(plane, neighbors[i], idPoint);
-		}
-	}
-}
-
-void gb_floodFillSubdivision2l(CP_Plane &plane, Pair_Int coord1, Pair_Int coord2, int idPoint)
-{
-	// 标记为已访问
-	plane.m_queryGrid2l.insert(pair<Pair_Int, Pair_Int>(coord1, coord2));
-	// 在网格内查找
-	CP_PlaneGrid &grid = plane.m_gridMap[coord1];
-	list<int> &l = grid.m_points2l[coord2.first][coord2.second];
-	for (auto iter : l)
-	{
-		double d = gb_distancePointPoint(plane.m_points[idPoint], plane.m_points[iter]);
-		if (plane.m_distance > d)
-		{
-			plane.m_distance = d;
-			plane.m_queryResult = iter;
-		}
-	}
-	// 四近邻查找
-	Pair_Int neighbors[4] = {
-		Pair_Int(coord2.first - 1, coord2.second),
-		Pair_Int(coord2.first + 1, coord2.second),
-		Pair_Int(coord2.first, coord2.second - 1),
-		Pair_Int(coord2.first, coord2.second + 1),
-	};
-	int xSub = 4;
-	int ySub = 4;
-	for (int i = 0; i < 4; i++)
-	{
-		if (neighbors[i].first >= 0 && neighbors[i].first < xSub
-			&& neighbors[i].second >= 0 && neighbors[i].second < xSub
-			&& plane.m_queryGrid2l.find(pair<Pair_Int, Pair_Int>(coord1, neighbors[i])) == plane.m_queryGrid2l.end()
-			&& gb_distancePointCell(plane, coord1, coord2, idPoint) < plane.m_distance)
-		{
-			gb_floodFillSubdivision2l(plane, coord1, neighbors[i], idPoint);
-		}
-	}
-}
-
-double gb_distancePointCell(CP_Plane &plane, Pair_Int coord1, int idPoint)
-{
-	double xmin = plane.m_boxXMin + coord1.first * plane.m_xSize;
-	double xmax = plane.m_boxXMin + (coord1.first + 1) * plane.m_xSize;
-	double ymin = plane.m_boxYMin + coord1.second * plane.m_ySize;
-	double ymax = plane.m_boxYMin + (coord1.second + 1) * plane.m_ySize;
-
-	double d = DBL_MAX;
-	CP_Point idp = plane.m_points[idPoint];
-	d = min(d, gb_distancePointPoint(idp, CP_Point(xmin, ymin)));
-	d = min(d, gb_distancePointPoint(idp, CP_Point(xmin, ymax)));
-	d = min(d, gb_distancePointPoint(idp, CP_Point(xmax, ymin)));
-	d = min(d, gb_distancePointPoint(idp, CP_Point(xmax, ymax)));
-	double maskX = (idp.m_x - xmin) * (idp.m_x - xmax);
-	double maskY = (idp.m_y - ymin) * (idp.m_y - ymax);
-	if (maskX >= 0 && maskY <= 0)
-	{
-		d = min(d, abs(idp.m_x - xmin));
-		d = min(d, abs(idp.m_x - xmax));
-	}
-	if (maskX <= 0 && maskY >= 0)
-	{
-		d = min(d, abs(idp.m_y - ymin));
-		d = min(d, abs(idp.m_y - ymax));
-	}
-	return d;
-}
-
-double gb_distancePointCell(CP_Plane &plane, Pair_Int coord1, Pair_Int coord2, int idPoint)
-{
-	int xSub = 4;
-	int ySub = 4;
-	double xmin = plane.m_boxXMin + (coord1.first + coord2.first / xSub) * plane.m_xSize;
-	double xmax = plane.m_boxXMin + (coord1.first + (coord2.first + 1) / xSub) * plane.m_xSize;
-	double ymin = plane.m_boxYMin + (coord1.second + coord2.second / ySub) * plane.m_ySize;
-	double ymax = plane.m_boxYMin + (coord1.second + (coord2.second + 1) / ySub) * plane.m_ySize;
-
-	double d = DBL_MAX;
-	CP_Point idp = plane.m_points[idPoint];
-	d = min(d, gb_distancePointPoint(idp, CP_Point(xmin, ymin)));
-	d = min(d, gb_distancePointPoint(idp, CP_Point(xmin, ymax)));
-	d = min(d, gb_distancePointPoint(idp, CP_Point(xmax, ymin)));
-	d = min(d, gb_distancePointPoint(idp, CP_Point(xmax, ymax)));
-	double maskX = (idp.m_x - xmin) * (idp.m_x - xmax);
-	double maskY = (idp.m_y - ymin) * (idp.m_y - ymax);
-	if (maskX >= 0 && maskY <= 0)
-	{
-		d = min(d, abs(idp.m_x - xmin));
-		d = min(d, abs(idp.m_x - xmax));
-	}
-	if (maskX <= 0 && maskY >= 0)
-	{
-		d = min(d, abs(idp.m_y - ymin));
-		d = min(d, abs(idp.m_y - ymax));
-	}
-	return d;
-}
-
-// 生成三角剖分
-void gb_generateTriagleMesh(CP_Plane &plane, CP_TriagleMesh &mesh, CP_Polygon& pn)
-{
-	// 点初始化
-	gb_getDelaunayVertices(plane, mesh, pn);
-	// TODO
-	//gb_randomizeDelaunayVertices(plane);
-	gb_initSubdivision(plane);
-	// 构造外围多边形顶点
-	double M = -1;
-	M = max(M, abs(plane.m_boxXMin));
-	M = max(M, abs(plane.m_boxXMax));
-	M = max(M, abs(plane.m_boxYMin));
-	M = max(M, abs(plane.m_boxYMax));
-	plane.m_points.push_back(CP_Point(3 * M, 0));
-	plane.m_points.push_back(CP_Point(-3 * M, -3 * M));
-	plane.m_points.push_back(CP_Point(0, 3 * M));
-	// 初始化mesh并添加第1个顶点
-	int vnum = plane.m_points.size();
-	mesh.m_vertexArray.resize(vnum);
-	mesh.m_triagleIDArray.push_back(CP_Triagle(0, vnum - 3, vnum - 2));
-	mesh.m_triagleIDArray.push_back(CP_Triagle(0, vnum - 2, vnum - 1));
-	mesh.m_triagleIDArray.push_back(CP_Triagle(0, vnum - 1, vnum - 3));
-	mesh.m_triagleFlag.push_back(true);
-	mesh.m_triagleFlag.push_back(true);
-	mesh.m_triagleFlag.push_back(true);
-	mesh.m_triagleIDArray[0].m_neighbors[0] = 2;
-	mesh.m_triagleIDArray[0].m_neighbors[1] = -1;
-	mesh.m_triagleIDArray[0].m_neighbors[2] = 1;
-	mesh.m_triagleIDArray[1].m_neighbors[0] = 0;
-	mesh.m_triagleIDArray[1].m_neighbors[1] = -1;
-	mesh.m_triagleIDArray[1].m_neighbors[2] = 2;
-	mesh.m_triagleIDArray[2].m_neighbors[0] = 1;
-	mesh.m_triagleIDArray[2].m_neighbors[1] = -1;
-	mesh.m_triagleIDArray[2].m_neighbors[2] = 0;
-	mesh.m_vertexArray[0].m_triagles.push_back(0);
-	mesh.m_vertexArray[0].m_triagles.push_back(1);
-	mesh.m_vertexArray[0].m_triagles.push_back(2);
-	mesh.m_vertexArray[vnum - 3].m_triagles.push_back(0);
-	mesh.m_vertexArray[vnum - 3].m_triagles.push_back(2);
-	mesh.m_vertexArray[vnum - 2].m_triagles.push_back(0);
-	mesh.m_vertexArray[vnum - 2].m_triagles.push_back(1);
-	mesh.m_vertexArray[vnum - 1].m_triagles.push_back(1);
-	mesh.m_vertexArray[vnum - 1].m_triagles.push_back(2);
-
-	Pair_Int triagles;
-	for (int idPoint = 1; idPoint < vnum - 3; idPoint++)
-	{
-		TRACE("\n\n#########################\n%d now\n", idPoint);
-		gb_querySubdivision(plane, idPoint);
-		triagles = gb_findTriagleContainingPoint(plane, mesh, idPoint, plane.m_queryResult);
-		VT_IntArray newTris;
-		// TODO
-		//if (triagles.second < 0)
-		if (true)
-		{
-			// 创建3个新三角形
-			mesh.m_triagleIDArray.push_back(CP_Triagle(idPoint, mesh.tri(triagles.first).m_points[0], mesh.tri(triagles.first).m_points[1]));
-			mesh.m_triagleIDArray.push_back(CP_Triagle(idPoint, mesh.tri(triagles.first).m_points[1], mesh.tri(triagles.first).m_points[2]));
-			mesh.m_triagleIDArray.push_back(CP_Triagle(idPoint, mesh.tri(triagles.first).m_points[2], mesh.tri(triagles.first).m_points[0]));
-			mesh.m_triagleFlag.push_back(true);
-			mesh.m_triagleFlag.push_back(true);
-			mesh.m_triagleFlag.push_back(true);
-			int triNum = mesh.m_triagleIDArray.size();
-			newTris.resize(3);
-			newTris[0] = triNum - 3;
-			newTris[1] = triNum - 2;
-			newTris[2] = triNum - 1;
-			// 跟新三角形之间的相邻关系
-			for (int i = 0; i < 3; i++)
-			{
-				mesh.tri(newTris[i]).m_neighbors[0] = newTris[(i + 2) % 3];
-				mesh.tri(newTris[i]).m_neighbors[1] = mesh.tri(triagles.first).m_neighbors[i];
-				mesh.tri(newTris[i]).m_neighbors[2] = newTris[(i + 1) % 3];
-				if (mesh.tri(triagles.first).m_neighbors[i] >= 0)
-				{
-					for (int j = 0; j < 3; j++)
-					{
-						if (mesh.tri(mesh.tri(triagles.first).m_neighbors[i]).m_neighbors[j] == triagles.first)
-						{
-							mesh.tri(mesh.tri(triagles.first).m_neighbors[i]).m_neighbors[j] = newTris[i];
-							break;
-						}
-					}
-				}
-			}
-			// 跟新顶点与三角形的相邻关系
-			for (int i = 0; i < 3; i++)
-			{
-				mesh.m_vertexArray[idPoint].m_triagles.push_back(newTris[i]);
-			}
-			for (int i = 0; i < 3; i++)
-			{
-				for (auto iter = mesh.m_vertexArray[mesh.tri(triagles.first).m_points[i]].m_triagles.begin();
-					iter != mesh.m_vertexArray[mesh.tri(triagles.first).m_points[i]].m_triagles.end();
-					iter++)
-				{
-					if (*iter == triagles.first)
-					{
-						mesh.m_vertexArray[mesh.tri(triagles.first).m_points[i]].m_triagles.erase(iter);
-						break;
-					}
-				}
-				mesh.m_vertexArray[mesh.tri(triagles.first).m_points[i]].m_triagles.push_back(newTris[(i + 2) % 3]);
-				mesh.m_vertexArray[mesh.tri(triagles.first).m_points[i]].m_triagles.push_back(newTris[i]);
-			}
-			// TODO：删除原三角形？
-			mesh.m_triagleFlag[triagles.first] = false;
-		}
-		else
-		{
-		}
-
-		TRACE("tris: %d %d\n", triagles.first, triagles.second);
-		gb_debugMesh(mesh);
-		gb_legalizeTriagleMesh(plane, mesh, newTris);
-		gb_insertToSubdivision1l(plane, idPoint);
-
-		gb_debugMesh(mesh);
-	}
-
-	gb_finalizeTriagleMesh();
-}
-
-void gb_debugMesh(CP_TriagleMesh &mesh)
-{
-	TRACE("****************\n");
-	TRACE("mesh debug info\n");
-	TRACE("****************\n");
-	for (int i = 0; i < mesh.m_triagleIDArray.size(); i++)
-	{
-		if (mesh.m_triagleFlag[i])
-		{
-			TRACE("triangle #%d \n\t neighbor %d %d %d \n\t point %d %d %d\n", 
-				i,
-				mesh.m_triagleIDArray[i].m_neighbors[0],
-				mesh.m_triagleIDArray[i].m_neighbors[1],
-				mesh.m_triagleIDArray[i].m_neighbors[2],
-				mesh.m_triagleIDArray[i].m_points[0],
-				mesh.m_triagleIDArray[i].m_points[1],
-				mesh.m_triagleIDArray[i].m_points[2]);
-		}
-	}
-	for (int i = 0; i < mesh.m_vertexArray.size(); i++)
-	{
-		if (mesh.m_vertexArray[i].m_triagles.size())
-		{
-			TRACE("vertex #%d \n", i);
-			for (auto iter : mesh.m_vertexArray[i].m_triagles)
-			{
-				TRACE("%d \n", iter);
-			}
-		}
-	}
-}
-
-Pair_Int gb_findTriagleContainingPoint(CP_Plane &plane, CP_TriagleMesh &mesh, int idPoint, int idVertex)
-{
-	CP_MeshVertex vertex = mesh.m_vertexArray[idVertex];
-	CP_Point p = plane.m_points[idPoint];
-	Pair_Int result = Pair_Int(-1, -1);
-	for (int i = 0; i < vertex.m_triagles.size(); i++)
-	{
-		// 采用重心坐标判断点在三角形内外
-		// https://en.wikipedia.org/wiki/Barycentric_coordinate_system
-		CP_Point p1 = plane.m_points[mesh.tri(vertex.m_triagles[i]).m_points[0]];
-		CP_Point p2 = plane.m_points[mesh.tri(vertex.m_triagles[i]).m_points[1]];
-		CP_Point p3 = plane.m_points[mesh.tri(vertex.m_triagles[i]).m_points[2]];
-		double det = (p2.m_y - p3.m_y) * (p1.m_x - p3.m_x) + (p3.m_x - p2.m_x) * (p1.m_y - p3.m_y);
-		double lambda1 = ((p2.m_y - p3.m_y) * (p.m_x - p3.m_x) + (p3.m_x - p2.m_x) * (p.m_y - p3.m_y)) / det;
-		double lambda2 = ((p3.m_y - p1.m_y) * (p.m_x - p3.m_x) + (p1.m_x - p3.m_x) * (p.m_y - p3.m_y)) / det;
-		double lambda3 = 1 - lambda1 - lambda2;
-		if (lambda1 >= 0 && lambda2 >= 0 && lambda3 >= 0)
-		{
-			if (result.first < 0)
-			{
-				result.first = vertex.m_triagles[i];
-			}
-			else if (result.second < 0)
-			{
-				result.second = vertex.m_triagles[i];
-			}
-			else
-			{
-				TRACE("重心坐标计算错误!\n");
-			}
-		}
-	}
-
-	if (result.first < 0)
-	{
-		TRACE("未找到所属的三角形!\n");
-	}
-	return result;
-}
-
-// 合法化三角剖分
-void gb_legalizeTriagleMesh(CP_Plane &plane, CP_TriagleMesh &mesh, VT_IntArray newTris)
-{
-	for (int i = 0; i < newTris.size(); i++)
-	{
-		for (int j = 0; j < 3; j++)
-		{
-			gb_emptyCircleTestAndAdjust(plane, mesh, newTris[i], j);
-		}
-	}
-}
-
-void gb_emptyCircleTestAndAdjust(CP_Plane &plane, CP_TriagleMesh &mesh, int idTri0, int t1)
-{
-	// https://en.wikipedia.org/wiki/Delaunay_triangulation
-	// https://en.wikipedia.org/wiki/Determinant
-	CP_Triagle& tri0 = mesh.tri(idTri0);
-	int idTri1 = tri0.m_neighbors[t1];
-	if (idTri1 < 0)
-		return;
-	CP_Triagle& tri1 = mesh.tri(idTri1);
-
-	// 如果是第neighbor个邻居，那么 tri 三角形的第 (neighbor + 2) % 3 个顶点为不与 tri1 相邻的顶点
-	int idPoint0 = (t1 + 2) % 3;
-	if (tri0.m_points[idPoint0] == tri1.m_points[0]
-		|| tri0.m_points[idPoint0] == tri1.m_points[1]
-		|| tri0.m_points[idPoint0] == tri1.m_points[2])
-	{
-		TRACE("本三角形的非邻接点错误!\n");
-		return;
-	}
-	CP_Point A = plane.m_points[tri1.m_points[0]];
-	CP_Point B = plane.m_points[tri1.m_points[1]];
-	CP_Point C = plane.m_points[tri1.m_points[2]];
-	CP_Point D = plane.m_points[tri0.m_points[idPoint0]];
-	double a, b, c, d, e, f, g, h, i;
-	a = A.m_x - D.m_x;
-	b = A.m_y - D.m_y;
-	c = (A.m_x - D.m_x) * (A.m_x - D.m_x) + (A.m_y - D.m_y) * (A.m_y - D.m_y);
-	d = B.m_x - D.m_x;
-	e = B.m_y - D.m_y;
-	f = (B.m_x - D.m_x) * (B.m_x - D.m_x) + (B.m_y - D.m_y) * (B.m_y - D.m_y);
-	g = C.m_x - D.m_x;
-	h = C.m_y - D.m_y;
-	i = (C.m_x - D.m_x) * (C.m_x - D.m_x) + (C.m_y - D.m_y) * (C.m_y - D.m_y);
-	double det = a * e * i + b * f * g + c * d * h - c * e * g - b * d * i - a * f * h;
-	// 这里由于是顺时针存储三角形的顶点，所以与wiki不一样
-	if (det < 0)
-	{
-		TRACE("开始进行翻转\n");
-		// 进行边翻转，这里不能采取新建三角形的方式，因为会破坏 gb_legalizeTriagleMesh 的最外层循环
-		// 确定tri1的非邻接定点
-		int idPoint1;
-		for (int iter = 0; iter < 3; iter++)
-		{
-			if (tri1.m_points[iter] != tri0.m_points[t1]
-				&& tri1.m_points[iter] != tri0.m_points[(t1 + 1) % 3])
-			{
-				idPoint1 = iter;
-				break;
-			}
-		}
-		if (tri1.m_points[idPoint1] == tri0.m_points[0]
-			|| tri1.m_points[idPoint1] == tri0.m_points[1]
-			|| tri1.m_points[idPoint1] == tri0.m_points[2])
-		{
-			TRACE("对三角形的非邻接点错误!\n");
+			list.erase(iter);
 			return;
 		}
-		// 对tri和tri1的临界三角形进行修改
-		/*nb2-				-nb0			nb2-			-nb0
-			   tir1---tri0		=====>             tri0
-		  nb3-				-nb1				     |
-											       tri1
-										    nb3-			-nb1
-		*/
-		int nb0 = tri0.m_neighbors[(idPoint0 + 2) % 3];
-		int nb1 = tri0.m_neighbors[(idPoint0 + 1) % 3];
-		int nb2 = tri1.m_neighbors[idPoint1];
-		int nb3 = tri1.m_neighbors[(idPoint1 + 2) % 3];
-		if (tri1.m_neighbors[(idPoint1 + 1) % 3] != idTri0)
+	}
+}
+
+double distanceVertex2Vertex(CP_MeshVertex *v1, CP_MeshVertex *v2)
+{
+	double deltaX = v1->m_x - v2->m_x;
+	double deltaY = v1->m_y - v2->m_y;
+	return sqrt(deltaX * deltaX + deltaY * deltaY);
+}
+
+void findClosestPoints(CP_TriagleMesh *mesh, CP_MeshVertex *vertex, vector<pair<CP_MeshVertex*, double> > &distances)
+{
+	typedef pair<CP_MeshVertex*, double> pairs;
+	int vsize = mesh->m_vertexArray.size();
+	// distances.resize(vsize);
+	for (int i = 0; i < vsize; i++)
+	{
+		if (mesh->m_vertexArray[i] != vertex)
 		{
-			TRACE("对三角形的对三角形必须为本三角形!\n");
-			return;
+			double distance = distanceVertex2Vertex(vertex, mesh->m_vertexArray[i]);
+			distances.push_back(pairs(mesh->m_vertexArray[i], distance));
 		}
-		tri0.m_neighbors[0] = nb0;
-		tri0.m_neighbors[1] = idTri1;
-		tri0.m_neighbors[2] = nb2;
-		tri1.m_neighbors[0] = nb3;
-		tri1.m_neighbors[1] = idTri0;
-		tri1.m_neighbors[2] = nb1;
-		if (nb1 >= 0)
+		else
+			break;
+	}
+
+	sort(distances.begin(), distances.end(), 
+		[](const pairs &a, const pairs &b) -> bool
+	{
+		return a.second < b.second;
+	});
+}
+
+void getBoundingBox(CP_TriagleMesh *mesh, double &xmin, double &xmax, double &ymin, double &ymax)
+{
+	xmin = DBL_MAX;
+	ymin = DBL_MAX;
+	xmax = DBL_MAX * -1;
+	ymax = DBL_MAX * -1;
+	int vsize = mesh->m_vertexArray.size();
+	for (int i = 0; i < vsize; i++)
+	{
+		xmin = min(mesh->m_vertexArray[i]->m_x, xmin);
+		ymin = min(mesh->m_vertexArray[i]->m_y, ymin);
+		xmax = max(mesh->m_vertexArray[i]->m_x, xmax);
+		ymax = max(mesh->m_vertexArray[i]->m_y, ymax);
+	}
+}
+
+void getTriagleCoord(CP_MeshTriagle *tri, CP_MeshVertex *vertex, double &l1, double &l2, double &l3)
+{
+	// https://en.wikipedia.org/wiki/Barycentric_coordinates_%28mathematics%29
+	double x1 = tri->m_vertex[0]->m_x;
+	double y1 = tri->m_vertex[0]->m_y;
+	double x2 = tri->m_vertex[1]->m_x;
+	double y2 = tri->m_vertex[1]->m_y;
+	double x3 = tri->m_vertex[2]->m_x;
+	double y3 = tri->m_vertex[2]->m_y;
+	double x = vertex->m_x;
+	double y = vertex->m_y;
+
+	double detT = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
+	l1 = ((y2 - y3) * (x - x3) + (x3 - x2) * (y - y3)) / detT;
+	l2 = ((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) / detT;
+	l3 = 1 - l1 - l2;
+}
+
+bool testVertexInTriagle(CP_MeshTriagle *tri, CP_MeshVertex *vertex)
+{
+	double l1, l2, l3;
+	getTriagleCoord(tri, vertex, l1, l2, l3);
+
+	return (l1 >= 0) && (l2 >= 0) && (l3 >= 0);
+}
+
+CP_MeshTriagle* oppositeTriagle(CP_MeshTriagle *tri, CP_MeshVertex *vertex)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		if (tri->m_vertex[i] == vertex)
 		{
-			for (int i = 0; i < 3; i++)
+			return tri->m_neighbors[(i + 1) % 3];
+		}
+	}
+}
+
+CP_MeshVertex* oppositeVertex(CP_MeshTriagle *tri1, CP_MeshTriagle *tri2)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		if (tri1->m_vertex[i] != tri2->m_vertex[0] &&
+			tri1->m_vertex[i] != tri2->m_vertex[1] &&
+			tri1->m_vertex[i] != tri2->m_vertex[2])
+		{
+			return tri1->m_vertex[i];
+		}
+	}
+}
+
+int oppositeVertexIndex(CP_MeshTriagle *tri1, CP_MeshTriagle *tri2)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		if (tri1->m_vertex[i] != tri2->m_vertex[0] &&
+			tri1->m_vertex[i] != tri2->m_vertex[1] &&
+			tri1->m_vertex[i] != tri2->m_vertex[2])
+		{
+			return i;
+		}
+	}
+}
+
+CP_MeshTriagle* flipTriagle(CP_MeshTriagle *tri1, CP_MeshTriagle *tri2)
+{
+	int index1 = oppositeVertexIndex(tri1, tri2);
+	int index2 = oppositeVertexIndex(tri2, tri1);
+	CP_MeshVertex *v0 = tri1->m_vertex[index1];
+	CP_MeshVertex *v1 = tri1->m_vertex[(index1 + 1) % 3];
+	CP_MeshVertex *v2 = tri2->m_vertex[index2];
+	CP_MeshVertex *v3 = tri2->m_vertex[(index2 + 1) % 3];
+	CP_MeshTriagle *n0 = tri1->m_neighbors[index1];
+	CP_MeshTriagle *n1 = tri2->m_neighbors[(index2 + 2) % 3];
+	CP_MeshTriagle *n2 = tri2->m_neighbors[index2];
+	CP_MeshTriagle *n3 = tri1->m_neighbors[(index1 + 2) % 3];
+	// 改变2个三角形的顶点
+	tri1->m_vertex[0] = v0;
+	tri1->m_vertex[1] = v2;
+	tri1->m_vertex[2] = v3;
+	tri2->m_vertex[0] = v0;
+	tri2->m_vertex[1] = v1;
+	tri2->m_vertex[2] = v2;
+	// 改变顶点的三角形
+	v0->m_triagles.push_back(tri2);
+	eraseByValue(v1->m_triagles, tri1);
+	v2->m_triagles.push_back(tri1);
+	eraseByValue(v3->m_triagles, tri2);
+	// 改变两个三角形的邻居
+	tri1->m_neighbors[0] = tri2;
+	tri1->m_neighbors[1] = n2;
+	tri1->m_neighbors[2] = n3;
+	tri2->m_neighbors[0] = n0;
+	tri2->m_neighbors[1] = n1;
+	tri2->m_neighbors[2] = tri1;
+	// 改变邻居的邻居
+	if (n0 != NULL)
+	{
+		replaceByValue(n0->m_neighbors, 3, tri1, tri2);
+	}
+	if (n2 != NULL)
+	{
+		replaceByValue(n2->m_neighbors, 3, tri2, tri1);
+	}
+	return tri2;
+}
+
+void testEmptyCircumcircle(VT_MeshTriaglePointerArray &tris)
+{
+	CP_MeshTriagle *tri = tris.back();
+	for (int outer_loop = 0; outer_loop < 3; outer_loop++)
+	{
+		if (tri->m_neighbors[outer_loop])
+		{	
+			CP_MeshVertex *A = tri->m_vertex[0];
+			CP_MeshVertex *B = tri->m_vertex[1];
+			CP_MeshVertex *C = tri->m_vertex[2];
+			CP_MeshVertex *D = oppositeVertex(tri->m_neighbors[outer_loop], tri);
+			double a = A->m_x - D->m_x;
+			double b = A->m_y - D->m_y;
+			double c = a * a + b * b;
+			double d = B->m_x - D->m_x;
+			double e = B->m_y - D->m_y;
+			double f = d * d + e * e;
+			double g = C->m_x - D->m_x;
+			double h = C->m_y - D->m_y;
+			double i = g * g + h * h;
+			double det = a * e * i + b * f * g + c * d * h - c * e * g - b * d * i - a * f * h;
+			if (det > 0.0001)
 			{
-				if (mesh.tri(nb1).m_neighbors[i] == idTri0)
+				TRACE("det %f\n", det);
+				CP_MeshTriagle* neighbor = flipTriagle(tri, tri->m_neighbors[outer_loop]);
+				for (auto iter : tris)
 				{
-					mesh.tri(nb1).m_neighbors[i] = idTri1;
+					if (iter == neighbor)
+					{
+						return;
+					}
+				} 
+				tris.push_back(neighbor);
+				return;
+			}
+		}
+	}
+	tris.pop_back();
+}
+
+void insertVertex(CP_TriagleMesh *mesh, CP_MeshTriagle *tri, CP_MeshVertex *vertex)
+{
+	CP_MeshVertex *v1 = tri->m_vertex[0];
+	CP_MeshVertex *v2 = tri->m_vertex[1];
+	CP_MeshVertex *v3 = tri->m_vertex[2];
+	// 生成3个新的三角形
+	mesh->m_triagleArray.push_back(new CP_MeshTriagle(vertex, v1, v2));
+	CP_MeshTriagle *t1 = mesh->m_triagleArray.back();
+	mesh->m_triagleArray.push_back(new CP_MeshTriagle(vertex, v2, v3));
+	CP_MeshTriagle *t2 = mesh->m_triagleArray.back();
+	mesh->m_triagleArray.push_back(new CP_MeshTriagle(vertex, v3, v1));
+	CP_MeshTriagle *t3 = mesh->m_triagleArray.back();
+	// 跟新顶点的三角形
+	vertex->m_triagles.push_back(t1);
+	vertex->m_triagles.push_back(t2);
+	vertex->m_triagles.push_back(t3);
+	replaceByValue(v1->m_triagles.data(), v1->m_triagles.size(), tri, t1);
+	v1->m_triagles.push_back(t3);
+	replaceByValue(v2->m_triagles.data(), v2->m_triagles.size(), tri, t2);
+	v2->m_triagles.push_back(t1);
+	replaceByValue(v3->m_triagles.data(), v3->m_triagles.size(), tri, t3);
+	v3->m_triagles.push_back(t2);
+	// 更新三角形的邻居
+	t1->m_neighbors[0] = t3;
+	t1->m_neighbors[1] = tri->m_neighbors[0];
+	t1->m_neighbors[2] = t2;
+	if (tri->m_neighbors[0])
+	{
+		replaceByValue(tri->m_neighbors[0]->m_neighbors, 3, tri, t1);
+	}
+	//
+	t2->m_neighbors[0] = t1;
+	t2->m_neighbors[1] = tri->m_neighbors[1];
+	t2->m_neighbors[2] = t3;
+	if (tri->m_neighbors[1])
+	{
+		replaceByValue(tri->m_neighbors[1]->m_neighbors, 3, tri, t2);
+	}
+	//
+	t3->m_neighbors[0] = t2;
+	t3->m_neighbors[1] = tri->m_neighbors[2];
+	t3->m_neighbors[2] = t1;
+	if (tri->m_neighbors[2])
+	{
+		replaceByValue(tri->m_neighbors[2]->m_neighbors, 3, tri, t3);
+	}
+	//
+	tri->del();
+}
+
+void initialization(CP_TriagleMesh *mesh)
+{
+	// 获得包围盒
+	double xmin, xmax, ymin, ymax;
+	getBoundingBox(mesh, xmin, xmax, ymin, ymax);
+	xmax = max(abs(xmin), abs(xmax));
+	ymax = max(abs(ymin), abs(ymax));
+	// 生成外围三角形
+	int vsize = mesh->m_vertexArray.size();
+	mesh->m_vertexArray.push_back(new CP_MeshVertex(3 * xmax, 0, vsize));
+	CP_MeshVertex *v1 = mesh->m_vertexArray.back();
+	mesh->m_vertexArray.push_back(new CP_MeshVertex(0, 3 * ymax, vsize + 1));
+	CP_MeshVertex *v2 = mesh->m_vertexArray.back();
+	mesh->m_vertexArray.push_back(new CP_MeshVertex(-3 * xmax, -3 * ymax, vsize + 2));
+	CP_MeshVertex *v3 = mesh->m_vertexArray.back();
+	mesh->m_triagleArray.push_back(new CP_MeshTriagle(v1, v2, v3));
+	CP_MeshTriagle *tri = (mesh->m_triagleArray[0]);
+	v1->m_triagles.push_back(tri);
+	v2->m_triagles.push_back(tri);
+	v3->m_triagles.push_back(tri);
+	// 插入第一个顶点
+	insertVertex(mesh, tri, mesh->m_vertexArray[0]);
+}
+
+void triangulation(CP_TriagleMesh *mesh)
+{
+	int vsize = mesh->m_vertexArray.size() - 3;
+	for (int outer_loop = 1; outer_loop < vsize; outer_loop++)
+	{
+		TRACE("outer loop #%d\n", outer_loop);
+		CP_MeshVertex *vertex = mesh->m_vertexArray[outer_loop];
+		CP_MeshTriagle *tri = NULL;
+		vector<pair<CP_MeshVertex*, double> > distances;
+		findClosestPoints(mesh, vertex, distances);
+		for (int i = 0; i < distances.size(); i++ && tri == NULL)
+		{
+			for (int j = 0; j < distances[i].first->m_triagles.size(); j++ && tri == NULL)
+			{
+				if (testVertexInTriagle(distances[i].first->m_triagles[j], vertex))
+				{
+					tri = distances[i].first->m_triagles[j];
 					break;
 				}
 			}
 		}
-		if (nb2 >= 0)
+		insertVertex(mesh, tri, vertex);
+		VT_MeshTriaglePointerArray tris;
+		for (auto iter = mesh->m_triagleArray.end() - 3; iter != mesh->m_triagleArray.end(); iter++)
 		{
-			for (int i = 0; i < 3; i++)
-			{
-				if (mesh.tri(nb2).m_neighbors[i] == idTri1)
-				{
-					mesh.tri(nb2).m_neighbors[i] = idTri0;
-					break;
-				}
-			}
+			tris.push_back(*iter);
 		}
-
-		// 对定点进行修改
-		// 对tri和tri1进行修改，两个三角形的第一个定点都是非邻接点
-		/* 
-		    p2                 0
-		   / | \             /    \
-		  p3 | p0  ==>       2  - 1
-	       \ | /             1  - 2
-	        p1               \    /
-	                           0
-		*/
-		int p0 = tri0.m_points[idPoint0];
-		int p1 = tri0.m_points[(idPoint0 + 1) % 3];
-		int p2 = tri0.m_points[(idPoint0 + 2) % 3];
-		int p3 = tri1.m_points[idPoint1];
-		tri0.m_points[0] = p2;
-		tri0.m_points[1] = p0;
-		tri0.m_points[2] = p3;
-		tri1.m_points[0] = p1;
-		tri1.m_points[1] = p3;
-		tri1.m_points[2] = p0;
-		mesh.pt(p0).m_triagles.push_back(idTri1);
-		mesh.pt(p3).m_triagles.push_back(idTri0);
-		for (auto iter = mesh.pt(p1).m_triagles.begin(); iter != mesh.pt(p1).m_triagles.end(); iter++)
+		while (!tris.empty())
 		{
-			if (*iter == idTri0)
-			{
-				mesh.pt(p1).m_triagles.erase(iter);
-				break;
-			}
-		}
-		for (auto iter = mesh.pt(p2).m_triagles.begin(); iter != mesh.pt(p2).m_triagles.end(); iter++)
-		{
-			if (*iter == idTri1)
-			{
-				mesh.pt(p2).m_triagles.erase(iter);
-				break;
-			}
+			TRACE("outer loop #%d test #%d\n", outer_loop, tris.size());
+			testEmptyCircumcircle(tris);
 		}
 	}
 }
 
-// 生成三角网格
-void gb_finalizeTriagleMesh()
+void finalisation(CP_TriagleMesh *mesh)
 {
+	for (auto iter = mesh->m_vertexArray.end() - 3; iter != mesh->m_vertexArray.end(); iter++)
+	{
+		for (int i = 0; i < (*iter)->m_triagles.size(); i++)
+		{
+			(*iter)->m_triagles[i]->del();
+		}
+	}
+}
 
+void printVertex(CP_MeshVertex *vertex)
+{
+	TRACE("%d %d\n", vertex->m_x, vertex->m_y);
+}
+
+void printTriagle(CP_MeshTriagle *tri)
+{
+	TRACE("%d %d %d %d %d %d\n",
+		tri->m_vertex[0]->m_x, tri->m_vertex[0]->m_y,
+		tri->m_vertex[1]->m_x, tri->m_vertex[1]->m_y,
+		tri->m_vertex[2]->m_x, tri->m_vertex[2]->m_y);
 }
