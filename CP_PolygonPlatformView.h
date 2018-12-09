@@ -104,6 +104,9 @@ extern void gb_drawLoop(CDC* pDC, CP_Loop& p,
 extern void gb_drawPointArrayLine(CDC* pDC, VT_PointArray& pa,
 	double scale, CP_Point translation, int screenX, int screenY,
 	int r, int g, int b, int size);
+extern void gb_drawPointArrayLoop(CDC* pDC, VT_PointArray& pa,
+	double scale, CP_Point translation, int screenX, int screenY,
+	int r, int g, int b, int size);
 extern void gb_drawPointArrayPoint(CDC* pDC, VT_PointArray& pa,
 	double scale, CP_Point translation, int screenX, int screenY,
 	int r, int g, int b, int size);

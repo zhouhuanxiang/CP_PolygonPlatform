@@ -226,15 +226,16 @@ void CCP_PolygonPlatformView::OnDraw(CDC* pDC)
 			if (iter->exits())
 			{
 				VT_PointArray pa(3);
+
 				for (int i = 0; i < 3; i++)
 				{
-					CP_MeshVertex *vertex = iter->m_vertex[i];
+					CP_MeshVertexPtr vertex = iter->m_vertex[i];
 					pa[i] = CP_Point(vertex->m_x, vertex->m_y);
 				}
-				gb_drawPointArrayLine(pDC, pa,
+				gb_drawPointArrayLoop(pDC, pa,
 					pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
 					200, 0, 255,
-					5);
+					1);
 			}
 		}
 	} // if (pDoc->m_flagShowTriangleFace)结束
@@ -246,7 +247,7 @@ void CCP_PolygonPlatformView::OnDraw(CDC* pDC)
 				pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
 				255, 0, 0,
 				0, 255, 0,
-				3);
+				2);
 			gb_drawPolygonPoint(pDC, pDoc->m_a,
 				pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
 				0, 0, 0,
@@ -262,11 +263,11 @@ void CCP_PolygonPlatformView::OnDraw(CDC* pDC)
 				pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
 				255, 0, 255,
 				0, 0, 255,
-				3);
+				1);
 			gb_drawPolygonPoint(pDC, pDoc->m_b,
 				pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
 				0, 0, 0,
-				3);
+				1);
 			if (pDoc->m_flagShowPointID)
 				gb_drawPolygonPointID(pDC, pDoc->m_b,
 					pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
@@ -384,22 +385,22 @@ void CCP_PolygonPlatformView::OnDraw(CDC* pDC)
 		gb_drawPointArrayLine(pDC, pDoc->m_flagAddPointArray,
 			pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
 			200, 0, 255,
-			5);
+			1);
 		gb_drawPointArrayPoint(pDC, pDoc->m_flagAddPointArray,
 			pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
 			0, 0, 0,
-			6);
+			1);
 	} // if (pDoc->m_flagAdd == 1)结束
 	if (pDoc->m_flagAdd == 2) // 内环
 	{
 		gb_drawPointArrayLine(pDC, pDoc->m_flagAddPointArray,
 			pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
 			0, 200, 255,
-			5);
+			1);
 		gb_drawPointArrayPoint(pDC, pDoc->m_flagAddPointArray,
 			pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
 			0, 0, 0,
-			6);
+			1);
 	} // if (pDoc->m_flagAdd == 2)结束
 }
 
@@ -450,6 +451,29 @@ void gb_drawPointArrayLine(CDC* pDC, VT_PointArray& pa,
 	} //for结束
 	pDC->SelectObject(penOld);
 } // 函数gb_drawPointArrayLine结束
+
+void gb_drawPointArrayLoop(CDC* pDC, VT_PointArray& pa,
+	double scale, CP_Point translation, int screenX, int screenY,
+	int r, int g, int b, int size)
+{
+	int n = pa.size();
+	if (n <= 0)
+		return;
+	CPen pen(0, size, RGB(r, g, b));
+	CPen * penOld = (CPen *)pDC->SelectObject(&pen);
+	int i;
+	CP_Point pg = pa[0];
+	CP_Point ps;
+	gb_pointConvertFromGlobalToScreen(ps, pg, scale, translation, screenX, screenY);
+	pDC->MoveTo((int)(ps.m_x + 0.5), (int)(ps.m_y + 0.5));
+	for (i = 0; i<=n; i++)
+	{
+		pg = pa[i % n];
+		gb_pointConvertFromGlobalToScreen(ps, pg, scale, translation, screenX, screenY);
+		pDC->LineTo((int)(ps.m_x + 0.5), (int)(ps.m_y + 0.5));
+	} //for结束
+	pDC->SelectObject(penOld);
+} // 函数gb_drawPointArrayLoop结束
 
 void gb_drawPointArrayPoint(CDC* pDC, VT_PointArray& pa,
 	double scale, CP_Point translation, int screenX, int screenY,
@@ -1729,12 +1753,13 @@ void CCP_PolygonPlatformView::OnViewTFace()
 		return;
 	pDoc->m_flagShowTriangleFace ^= true;
 
-	if (pDoc->m_a.m_pointArray.size())
+	if (pDoc->m_a.m_pointArray.size() && pDoc->m_flagShowTriangleFace)
 	{
 		initTriagleMesh(&pDoc->m_triagleMesh, &pDoc->m_a);
 		initialization(&pDoc->m_triagleMesh);
 		triangulation(&pDoc->m_triagleMesh);
 		finalisation(&pDoc->m_triagleMesh);
+		insertEdgeCDT(&pDoc->m_triagleMesh);
 	}
 	else
 	{

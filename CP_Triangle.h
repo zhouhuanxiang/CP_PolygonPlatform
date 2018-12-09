@@ -8,17 +8,29 @@ using namespace std;
 #include <map>
 #include <algorithm>
 #include <iostream>
+#include <memory>
 
 #include "CP_Polygon.h"
 
 class CP_MeshTriagle;
 class CP_MeshVertex;
+class CP_MeshEdge;
+
+typedef shared_ptr<CP_MeshTriagle> CP_MeshTriaglePtr;
+typedef shared_ptr<CP_MeshVertex> CP_MeshVertexPtr;
+typedef shared_ptr<CP_MeshEdge> CP_MeshEdgePtr;
+
+typedef vector<CP_MeshTriaglePtr> VT_MeshTriaglePointerArray;
+typedef vector<CP_MeshVertexPtr> VT_MeshVertexPointerArray;
+typedef vector<CP_MeshEdgePtr> VT_MeshEdgePointerArray;
+
+typedef set<CP_MeshEdgePtr> SET_MeshEdgePointerArray;
 
 class CP_MeshTriagle
 {
 public:
-	CP_MeshVertex* m_vertex[3];
-	CP_MeshTriagle* m_neighbors[3];
+	CP_MeshVertexPtr m_vertex[3];
+	CP_MeshTriaglePtr m_neighbors[3];
 	bool deleted;
 public:
 	CP_MeshTriagle() 
@@ -26,15 +38,11 @@ public:
 	{ 
 		m_neighbors[0] = NULL; m_neighbors[1] = NULL; m_neighbors[2] = NULL; 
 	}
-	CP_MeshTriagle(CP_MeshVertex* p0, CP_MeshVertex* p1, CP_MeshVertex* p2) 
+	CP_MeshTriagle(CP_MeshVertexPtr p0, CP_MeshVertexPtr p1, CP_MeshVertexPtr p2)
 		:deleted(false)
 	{ 
-		m_vertex[0] = p0; m_vertex[1] = p1; m_vertex[2] = p2; 
+		m_vertex[0] = p0; m_vertex[1] = p1; m_vertex[2] = p2;
 		m_neighbors[0] = NULL; m_neighbors[1] = NULL; m_neighbors[2] = NULL;
-	}
-	~CP_MeshTriagle()
-	{
-		del();
 	}
 	void del()
 	{
@@ -47,9 +55,6 @@ public:
 		return !deleted;
 	}
 }; // 类CP_Triagle定义结束
-
-typedef vector<CP_MeshTriagle> VT_MeshTriagleArray;
-typedef vector<CP_MeshTriagle*> VT_MeshTriaglePointerArray;
 
 class CP_MeshVertex
 {
@@ -67,28 +72,50 @@ public:
 	{
 		m_triagles.reserve(5);
 	}
-	~CP_MeshVertex()
+};
+
+class CP_MeshEdge
+{
+public:
+	CP_MeshVertexPtr m_a;
+	CP_MeshVertexPtr m_b;
+public:
+	CP_MeshEdge() 
+	{}
+	CP_MeshEdge(CP_MeshVertexPtr a, CP_MeshVertexPtr b)
+		:m_a(a), m_b(b)
+	{}
+	void del()
 	{
-		for (int i = 0; i < m_triagles.size(); i++)
-		{
-			m_triagles[i] = NULL;
-		}
-		m_triagles.clear();
+		m_a = NULL;
+		m_b = NULL;
 	}
 };
 
-typedef vector<CP_MeshVertex> VT_MeshVertexArray;
-typedef vector<CP_MeshVertex*> VT_MeshVertexPointerArray;
+class CP_PlaneLevelOne
+{
+
+};
+
+class CP_PlaneLevelTwo
+{
+
+};
 
 class CP_TriagleMesh
 {
 public:
 	VT_MeshTriaglePointerArray m_triagleArray;
 	VT_MeshVertexPointerArray m_vertexArray;
+	SET_MeshEdgePointerArray m_edgeArray;
 	CP_Polygon* m_polygon;
 public:
 	CP_TriagleMesh() : m_polygon(NULL) { }
 	void mb_clear();
+	~CP_TriagleMesh()
+	{
+		mb_clear();
+	}
 }; // 类CP_TriagleMesh定义结束
 
 extern void initTriagleMesh(CP_TriagleMesh *mesh, CP_Polygon* polygon);
@@ -99,27 +126,36 @@ extern void replaceByValue(T *list, int size, T from, T to);
 template <class T>
 extern void eraseByValue(vector<T> &list, T val);
 
-extern double distanceVertex2Vertex(CP_MeshVertex *v1, CP_MeshVertex *v2);
+template <class T>
+extern void insertByValue(vector<T> &list, T val);
 
-extern void findClosestPoints(CP_TriagleMesh *mesh, CP_MeshVertex *vertex, vector<pair<CP_MeshVertex*, double> > &distances);
+extern double distanceVertex2Vertex(CP_MeshVertexPtr v1, CP_MeshVertexPtr v2);
+
+extern void findClosestPoints(CP_TriagleMesh *mesh, CP_MeshVertexPtr vertex, vector<pair<CP_MeshVertexPtr, double> > &distances);
 
 extern void getBoundingBox(CP_TriagleMesh *mesh, double &xmin, double &xmax, double &ymin, double &ymax);
 
-extern void getTriagleCoord(CP_MeshTriagle *tri, CP_MeshVertex *vertex, double &l1, double &l2, double &l3);
+extern void getTriagleCoord(CP_MeshTriaglePtr tri, CP_MeshVertexPtr vertex, double &l1, double &l2, double &l3);
 
-extern bool testVertexInTriagle(CP_MeshTriagle *tri, CP_MeshVertex *vertex);
+extern bool testVertexInTriagle(CP_MeshTriaglePtr tri, CP_MeshVertexPtr vertex);
 
-extern CP_MeshTriagle* oppositeTriagle(CP_MeshTriagle *tri, CP_MeshVertex *vertex);
+extern CP_MeshTriaglePtr oppositeTriagle(CP_MeshTriaglePtr tri, CP_MeshVertexPtr vertex);
 
-extern CP_MeshVertex* oppositeVertex(CP_MeshTriagle *tri1, CP_MeshTriagle *tri2);
+extern CP_MeshVertexPtr oppositeVertex(CP_MeshTriaglePtr tri1, CP_MeshTriaglePtr tri2);
 
-extern int oppositeVertexIndex(CP_MeshTriagle *tri1, CP_MeshTriagle *tri2);
+extern int oppositeVertexIndex(CP_MeshTriaglePtr tri1, CP_MeshTriaglePtr tri2);
 
-extern CP_MeshTriagle* flipTriagle(CP_MeshTriagle *tri1, CP_MeshTriagle *tri2);
+extern CP_MeshTriaglePtr flipTriagle(CP_MeshTriaglePtr tri1, CP_MeshTriaglePtr tri2);
 
-extern void testEmptyCircumcircle(VT_MeshTriaglePointerArray &tris);
+extern bool testEmptyCircumcircleTriagleVertex(CP_MeshTriaglePtr tri, CP_MeshVertexPtr D);
 
-extern void insertVertex(CP_TriagleMesh *mesh, CP_MeshTriagle *tri, CP_MeshVertex *vertex);
+extern void testArtificialTriagle(CP_TriagleMesh *mesh, CP_MeshTriaglePtr tri1, CP_MeshTriaglePtr tri2, bool &is_artificial, bool &is_flip);
+
+extern void testEmptyCircumcircle(CP_TriagleMesh *mesh, VT_MeshTriaglePointerArray &tris);
+
+extern void insertVertex(CP_TriagleMesh *mesh, CP_MeshTriaglePtr tri, CP_MeshVertexPtr vertex);
+
+extern void removeTriagle(CP_MeshTriaglePtr tri);
 
 extern void initialization(CP_TriagleMesh *mesh);
 
@@ -127,8 +163,14 @@ extern void triangulation(CP_TriagleMesh *mesh);
 
 extern void finalisation(CP_TriagleMesh *mesh);
 
-extern void printVertex(CP_MeshVertex *vertex);
+extern bool intersectEdgeEdge(CP_MeshEdgePtr edge1, CP_MeshEdgePtr edge2);
 
-extern void printTriagle(CP_MeshTriagle *tri);
+extern bool intersectEdgeTriagle(CP_MeshEdgePtr edge, CP_MeshTriaglePtr tri);
+
+extern bool orientationVertexEdge(CP_MeshEdgePtr edge, CP_MeshVertexPtr vertex);
+
+extern void insertEdgeCDT(CP_TriagleMesh *mesh);
+
+extern void triangulatePseudoPolygon(CP_TriagleMesh *mesh, VT_MeshVertexPointerArray &polygon, CP_MeshEdgePtr edge);
 
 #endif
