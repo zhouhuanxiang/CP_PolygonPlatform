@@ -45,6 +45,9 @@
     <ClInclude Include="CP_Triangle.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="CP_Plane.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CP_PolygonPlatform.cpp">
@@ -66,6 +69,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="CP_Triangle.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CP_Plane.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

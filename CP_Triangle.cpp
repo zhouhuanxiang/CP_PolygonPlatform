@@ -34,9 +34,9 @@ void initTriagleMesh(CP_TriagleMesh *mesh, CP_Polygon* polygon)
 	{
 		mesh->m_vertexArray[i] = make_shared<CP_MeshVertex>(mesh->m_polygon->m_pointArray[i].m_x, mesh->m_polygon->m_pointArray[i].m_y, i);
 	}
-	for (auto region : mesh->m_polygon->m_regionArray)
+	for (auto &region : mesh->m_polygon->m_regionArray)
 	{
-		for (auto loop : region.m_loopArray)
+		for (auto &loop : region.m_loopArray)
 		{
 			for (int i = 0; i < loop.m_pointIDArray.size(); i++)
 			{
@@ -49,7 +49,7 @@ void initTriagleMesh(CP_TriagleMesh *mesh, CP_Polygon* polygon)
 }
 
 template <class T>
-void replaceByValue(T *list, int size, T from, T to)
+void replaceByValue(T *list, int size, const T &from, const T &to)
 {
 	for (int i = 0; i < size; i++)
 	{
@@ -62,7 +62,7 @@ void replaceByValue(T *list, int size, T from, T to)
 }
 
 template <class T>
-void eraseByValue(vector<T> &list, T val)
+void eraseByValue(vector<T> &list, const T &val)
 {
 	for (vector<T>::iterator iter = list.begin(); iter != list.end(); iter++)
 	{
@@ -75,7 +75,7 @@ void eraseByValue(vector<T> &list, T val)
 }
 
 template <class T>
-void insertByValue(vector<T> &list, T val)
+void insertByValue(vector<T> &list, const T& val)
 {
 	for (vector<T>::iterator iter = list.begin(); iter != list.end(); iter++)
 	{
@@ -87,14 +87,14 @@ void insertByValue(vector<T> &list, T val)
 	list.push_back(val);
 }
 
-double distanceVertex2Vertex(CP_MeshVertexPtr v1, CP_MeshVertexPtr v2)
+double distanceVertex2Vertex(const CP_MeshVertexPtr &v1, const CP_MeshVertexPtr &v2)
 {
 	double deltaX = v1->m_x - v2->m_x;
 	double deltaY = v1->m_y - v2->m_y;
 	return sqrt(deltaX * deltaX + deltaY * deltaY);
 }
 
-void findClosestPoints(CP_TriagleMesh *mesh, CP_MeshVertexPtr vertex, vector<pair<CP_MeshVertexPtr, double> > &distances)
+void findClosestPoints(CP_TriagleMesh *mesh, const CP_MeshVertexPtr &vertex, vector<pair<CP_MeshVertexPtr, double> > &distances)
 {
 	typedef pair<CP_MeshVertexPtr, double> pairs;
 	int vsize = mesh->m_vertexArray.size();
@@ -110,7 +110,7 @@ void findClosestPoints(CP_TriagleMesh *mesh, CP_MeshVertexPtr vertex, vector<pai
 			break;
 	}
 
-	sort(distances.begin(), distances.end(), 
+	sort(distances.begin(), distances.end(),
 		[](const pairs &a, const pairs &b) -> bool
 	{
 		return a.second < b.second;
@@ -133,7 +133,7 @@ void getBoundingBox(CP_TriagleMesh *mesh, double &xmin, double &xmax, double &ym
 	}
 }
 
-void getTriagleCoord(CP_MeshTriaglePtr tri, CP_MeshVertexPtr vertex, double &l1, double &l2, double &l3)
+void getTriagleCoord(const CP_MeshTriaglePtr &tri, const CP_MeshVertexPtr &vertex, double &l1, double &l2, double &l3)
 {
 	// https://en.wikipedia.org/wiki/Barycentric_coordinates_%28mathematics%29
 	double x1 = tri->m_vertex[0]->m_x;
@@ -151,7 +151,7 @@ void getTriagleCoord(CP_MeshTriaglePtr tri, CP_MeshVertexPtr vertex, double &l1,
 	l3 = 1 - l1 - l2;
 }
 
-bool testVertexInTriagle(CP_MeshTriaglePtr tri, CP_MeshVertexPtr vertex)
+bool testVertexInTriagle(const CP_MeshTriaglePtr &tri, const CP_MeshVertexPtr &vertex)
 {
 	double l1, l2, l3;
 	getTriagleCoord(tri, vertex, l1, l2, l3);
@@ -159,7 +159,7 @@ bool testVertexInTriagle(CP_MeshTriaglePtr tri, CP_MeshVertexPtr vertex)
 	return (l1 >= 0) && (l2 >= 0) && (l3 >= 0);
 }
 
-CP_MeshTriaglePtr oppositeTriagle(CP_MeshTriaglePtr tri, CP_MeshVertexPtr vertex)
+CP_MeshTriaglePtr& oppositeTriagle(const CP_MeshTriaglePtr &tri, const CP_MeshVertexPtr &vertex)
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -170,7 +170,7 @@ CP_MeshTriaglePtr oppositeTriagle(CP_MeshTriaglePtr tri, CP_MeshVertexPtr vertex
 	}
 }
 
-CP_MeshVertexPtr oppositeVertex(CP_MeshTriaglePtr tri1, CP_MeshTriaglePtr tri2)
+CP_MeshVertexPtr& oppositeVertex(const CP_MeshTriaglePtr &tri1, const CP_MeshTriaglePtr &tri2)
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -183,7 +183,7 @@ CP_MeshVertexPtr oppositeVertex(CP_MeshTriaglePtr tri1, CP_MeshTriaglePtr tri2)
 	}
 }
 
-int oppositeVertexIndex(CP_MeshTriaglePtr tri1, CP_MeshTriaglePtr tri2)
+int oppositeVertexIndex(const CP_MeshTriaglePtr &tri1, const CP_MeshTriaglePtr &tri2)
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -239,7 +239,7 @@ CP_MeshTriaglePtr flipTriagle(CP_MeshTriaglePtr tri1, CP_MeshTriaglePtr tri2)
 	return tri2;
 }
 
-bool testEmptyCircumcircleTriagleVertex(CP_MeshTriaglePtr tri, CP_MeshVertexPtr D)
+bool testEmptyCircumcircleTriagleVertex(const CP_MeshTriaglePtr &tri, const CP_MeshVertexPtr &D)
 {
 	CP_MeshVertexPtr A = tri->m_vertex[0];
 	CP_MeshVertexPtr B = tri->m_vertex[1];
@@ -262,7 +262,7 @@ bool testEmptyCircumcircleTriagleVertex(CP_MeshTriaglePtr tri, CP_MeshVertexPtr 
 	return det < DBL_EPSILON;
 }
 
-void testArtificialTriagle(CP_TriagleMesh *mesh, CP_MeshTriaglePtr tri1, CP_MeshTriaglePtr tri2, bool &is_artificial, bool &is_flip)
+void testArtificialTriagle(CP_TriagleMesh *mesh, const CP_MeshTriaglePtr &tri1, const CP_MeshTriaglePtr &tri2, bool &is_artificial, bool &is_flip)
 {
 	int index1 = oppositeVertexIndex(tri1, tri2);
 	int index2 = oppositeVertexIndex(tri2, tri1);
@@ -275,8 +275,8 @@ void testArtificialTriagle(CP_TriagleMesh *mesh, CP_MeshTriaglePtr tri1, CP_Mesh
 	is_flip = false;
 
 	if (mesh->m_edgeArray.end() != std::find_if(mesh->m_edgeArray.begin(), mesh->m_edgeArray.end(),
-		[&](const CP_MeshEdgePtr &e) -> bool 
-	{ 
+		[&](const CP_MeshEdgePtr &e) -> bool
+	{
 		return (e->m_a->index == v1->index && e->m_b->index == v3->index)
 			|| (e->m_a->index == v3->index && e->m_b->index == v1->index);
 	}))
@@ -340,7 +340,7 @@ void testEmptyCircumcircle(CP_TriagleMesh *mesh, VT_MeshTriaglePointerArray &tri
 	tris.pop_back();
 }
 
-void insertVertex(CP_TriagleMesh *mesh, CP_MeshTriaglePtr tri, CP_MeshVertexPtr vertex)
+void insertVertex(CP_TriagleMesh *mesh, CP_MeshTriaglePtr &tri, CP_MeshVertexPtr &vertex)
 {
 	CP_MeshVertexPtr v1 = tri->m_vertex[0];
 	CP_MeshVertexPtr v2 = tri->m_vertex[1];
@@ -390,16 +390,16 @@ void insertVertex(CP_TriagleMesh *mesh, CP_MeshTriaglePtr tri, CP_MeshVertexPtr 
 	tri->del();
 }
 
-void removeTriagle(CP_MeshTriaglePtr tri)
+void removeTriagle(CP_MeshTriaglePtr &tri)
 {
-	for (CP_MeshTriaglePtr t : tri->m_neighbors)
+	for (CP_MeshTriaglePtr &t : tri->m_neighbors)
 	{
 		if (t != NULL)
 		{
 			replaceByValue(t->m_neighbors, 3, tri, (CP_MeshTriaglePtr)NULL);
 		}
 	}
-	for (CP_MeshVertexPtr vertex : tri->m_vertex)
+	for (CP_MeshVertexPtr &vertex : tri->m_vertex)
 	{
 		eraseByValue(vertex->m_triagles, tri);
 	}
@@ -479,17 +479,17 @@ void finalisation(CP_TriagleMesh *mesh)
 	TRACE("finalized\n");
 }
 
-bool intersectEdgeEdge(CP_MeshEdgePtr edge1, CP_MeshEdgePtr edge2)
+bool intersectEdgeEdge(const CP_MeshEdgePtr &edge1, const CP_MeshEdgePtr &edge2)
 {
 	// https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
-	
 
-	if (edge1->m_a->index == edge2->m_a->index || edge1->m_a->index == edge2->m_b->index || 
+
+	if (edge1->m_a->index == edge2->m_a->index || edge1->m_a->index == edge2->m_b->index ||
 		edge1->m_b->index == edge2->m_a->index || edge1->m_b->index == edge2->m_b->index)
 	{
 		return false;
 	}
-	
+
 	double x1 = edge1->m_a->m_x;
 	double y1 = edge1->m_a->m_y;
 	double x2 = edge1->m_b->m_x;
@@ -504,7 +504,7 @@ bool intersectEdgeEdge(CP_MeshEdgePtr edge1, CP_MeshEdgePtr edge2)
 	{
 		double x = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / det;
 		double y = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / det;
-		return (x - x1) * (x - x2) < 0 && (y - y1) * (y - y2) < 0 
+		return (x - x1) * (x - x2) < 0 && (y - y1) * (y - y2) < 0
 			&& (x - x3) * (x - x4) < 0 && (y - y3) * (y - y4) < 0;
 	}
 	else
@@ -516,7 +516,7 @@ bool intersectEdgeEdge(CP_MeshEdgePtr edge1, CP_MeshEdgePtr edge2)
 	}
 }
 
-bool intersectEdgeTriagle(CP_MeshEdgePtr edge, CP_MeshTriaglePtr tri)
+bool intersectEdgeTriagle(const CP_MeshEdgePtr &edge, const CP_MeshTriaglePtr &tri)
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -529,7 +529,7 @@ bool intersectEdgeTriagle(CP_MeshEdgePtr edge, CP_MeshTriaglePtr tri)
 	return false;
 }
 
-bool orientationVertexEdge(CP_MeshEdgePtr edge, CP_MeshVertexPtr vertex)
+bool orientationVertexEdge(const CP_MeshEdgePtr &edge, const CP_MeshVertexPtr &vertex)
 {
 	// http://www.cs.cmu.edu/~quake/robust.html
 	double ax = edge->m_a->m_x;
@@ -552,7 +552,7 @@ void insertEdgeCDT(CP_TriagleMesh *mesh)
 		VT_MeshVertexPointerArray lower_polygon;
 		// 查找第一个相交三角形
 		CP_MeshTriaglePtr tri_seq = NULL;
-		for (CP_MeshTriaglePtr tri : edge->m_a->m_triagles)
+		for (CP_MeshTriaglePtr &tri : edge->m_a->m_triagles)
 		{
 			if (intersectEdgeTriagle(edge, tri))
 			{
@@ -569,7 +569,7 @@ void insertEdgeCDT(CP_TriagleMesh *mesh)
 		while (tri_seq != NULL)
 		{
 			// 首先将三角形顶点加入多边形
-			for (CP_MeshVertexPtr vertex : tri_seq->m_vertex)
+			for (CP_MeshVertexPtr &vertex : tri_seq->m_vertex)
 			{
 				if (vertex != edge->m_a && vertex != edge->m_b)
 				{
@@ -595,7 +595,7 @@ void insertEdgeCDT(CP_TriagleMesh *mesh)
 			else
 			{
 				tri_seq = NULL;
-				for (CP_MeshTriaglePtr tri : old_tri_seq->m_neighbors)
+				for (CP_MeshTriaglePtr &tri : old_tri_seq->m_neighbors)
 				{
 					if (tri == NULL)
 					{
@@ -608,11 +608,11 @@ void insertEdgeCDT(CP_TriagleMesh *mesh)
 					}
 				}
 			}
-			TRACE("edge %d %d remove triagle %d %d %d!\n", 
+			TRACE("edge %d %d remove triagle %d %d %d!\n",
 				edge->m_a->index,
 				edge->m_b->index,
-				old_tri_seq->m_vertex[0]->index, 
-				old_tri_seq->m_vertex[1]->index, 
+				old_tri_seq->m_vertex[0]->index,
+				old_tri_seq->m_vertex[1]->index,
 				old_tri_seq->m_vertex[2]->index);
 			removeTriagle(old_tri_seq);
 		}
@@ -632,7 +632,7 @@ void insertEdgeCDT(CP_TriagleMesh *mesh)
 				if (tri1->m_neighbors[v] == NULL)
 				{
 					CP_MeshVertexPtr vertex = tri1->m_vertex[v];
-					for (CP_MeshTriaglePtr tri2 : vertex->m_triagles)
+					for (CP_MeshTriaglePtr &tri2 : vertex->m_triagles)
 					{
 						int vv;
 						for (vv = 0; vv < 3; vv++)
@@ -662,7 +662,7 @@ void insertEdgeCDT(CP_TriagleMesh *mesh)
 	}
 }
 
-void triangulatePseudoPolygon(CP_TriagleMesh *mesh, VT_MeshVertexPointerArray &polygon, CP_MeshEdgePtr edge)
+void triangulatePseudoPolygon(CP_TriagleMesh *mesh, VT_MeshVertexPointerArray &polygon, CP_MeshEdgePtr &edge)
 {
 	CP_MeshVertexPtr c = NULL;
 	if (polygon.size() > 1)

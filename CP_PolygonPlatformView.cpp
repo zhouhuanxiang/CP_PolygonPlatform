@@ -221,7 +221,7 @@ void CCP_PolygonPlatformView::OnDraw(CDC* pDC)
 	GetClientRect(&r);
 	if (pDoc->m_flagShowTriangleFace)
 	{
-		for (auto iter : pDoc->m_triagleMesh.m_triagleArray)
+		for (auto &iter : pDoc->m_triagleMesh.m_triagleArray)
 		{
 			if (iter->exits())
 			{
