@@ -1756,8 +1756,9 @@ void CCP_PolygonPlatformView::OnViewTFace()
 	if (pDoc->m_a.m_pointArray.size() && pDoc->m_flagShowTriangleFace)
 	{
 		initTriagleMesh(&pDoc->m_triagleMesh, &pDoc->m_a);
-		initialization(&pDoc->m_triagleMesh);
-		triangulation(&pDoc->m_triagleMesh);
+		pDoc->m_plane.mb_clear();
+		initialization(&pDoc->m_triagleMesh, &pDoc->m_plane);
+		triangulation(&pDoc->m_triagleMesh, &pDoc->m_plane);
 		finalisation(&pDoc->m_triagleMesh);
 		insertEdgeCDT(&pDoc->m_triagleMesh);
 	}

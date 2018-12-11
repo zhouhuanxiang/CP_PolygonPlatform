@@ -11,6 +11,7 @@ using namespace std;
 #include <memory>
 
 #include "CP_Polygon.h"
+#include "CP_Plane.h"
 
 class CP_MeshTriagle;
 class CP_MeshVertex;
@@ -92,16 +93,6 @@ public:
 	}
 };
 
-class CP_PlaneLevelOne
-{
-
-};
-
-class CP_PlaneLevelTwo
-{
-
-};
-
 class CP_TriagleMesh
 {
 public:
@@ -153,13 +144,13 @@ extern void testArtificialTriagle(CP_TriagleMesh *mesh, const CP_MeshTriaglePtr 
 
 extern void testEmptyCircumcircle(CP_TriagleMesh *mesh, VT_MeshTriaglePointerArray &tris);
 
-extern void insertVertex(CP_TriagleMesh *mesh, CP_MeshTriaglePtr &tri, CP_MeshVertexPtr &vertex);
+extern void insertVertex(CP_TriagleMesh *mesh, CP_Plane *plane, CP_MeshTriaglePtr &tri, CP_MeshVertexPtr &vertex);
 
 extern void removeTriagle(CP_MeshTriaglePtr &tri);
 
-extern void initialization(CP_TriagleMesh *mesh);
+extern void initialization(CP_TriagleMesh *mesh, CP_Plane *plane);
 
-extern void triangulation(CP_TriagleMesh *mesh);
+extern void triangulation(CP_TriagleMesh *mesh, CP_Plane *plane);
 
 extern void finalisation(CP_TriagleMesh *mesh);
 

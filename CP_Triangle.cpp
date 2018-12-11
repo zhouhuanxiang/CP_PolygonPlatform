@@ -21,7 +21,7 @@ void CP_TriagleMesh::mb_clear()
 	m_edgeArray = SET_MeshEdgePointerArray();
 	m_polygon = NULL;
 
-	TRACE("cleared\n");
+	// TRACE("cleared\n");
 }
 
 void initTriagleMesh(CP_TriagleMesh *mesh, CP_Polygon* polygon)
@@ -257,7 +257,7 @@ bool testEmptyCircumcircleTriagleVertex(const CP_MeshTriaglePtr &tri, const CP_M
 
 	//if (det >= DBL_EPSILON)
 	//{
-	//	TRACE("det %f\n", det);
+	//	// TRACE("det %f\n", det);
 	//}
 	return det < DBL_EPSILON;
 }
@@ -340,7 +340,7 @@ void testEmptyCircumcircle(CP_TriagleMesh *mesh, VT_MeshTriaglePointerArray &tri
 	tris.pop_back();
 }
 
-void insertVertex(CP_TriagleMesh *mesh, CP_MeshTriaglePtr &tri, CP_MeshVertexPtr &vertex)
+void insertVertex(CP_TriagleMesh *mesh, CP_Plane *plane, CP_MeshTriaglePtr &tri, CP_MeshVertexPtr &vertex)
 {
 	CP_MeshVertexPtr v1 = tri->m_vertex[0];
 	CP_MeshVertexPtr v2 = tri->m_vertex[1];
@@ -388,6 +388,8 @@ void insertVertex(CP_TriagleMesh *mesh, CP_MeshTriaglePtr &tri, CP_MeshVertexPtr
 	}
 	//
 	tri->del();
+	//
+	insertPlane(*plane, CP_PlanePoint(vertex->index, vertex->m_x, vertex->m_y));
 }
 
 void removeTriagle(CP_MeshTriaglePtr &tri)
@@ -406,11 +408,12 @@ void removeTriagle(CP_MeshTriaglePtr &tri)
 	tri->del();
 }
 
-void initialization(CP_TriagleMesh *mesh)
+void initialization(CP_TriagleMesh *mesh, CP_Plane *plane)
 {
 	// 获得包围盒
 	double xmin, xmax, ymin, ymax;
 	getBoundingBox(mesh, xmin, xmax, ymin, ymax);
+	initializationPlane(*plane, mesh->m_vertexArray.size(), xmin, xmax, ymin, ymax);
 	xmax = max(abs(xmin), abs(xmax));
 	ymax = max(abs(ymin), abs(ymax));
 	// 生成外围三角形
@@ -427,31 +430,65 @@ void initialization(CP_TriagleMesh *mesh)
 	v2->m_triagles.push_back(tri);
 	v3->m_triagles.push_back(tri);
 	// 插入第一个顶点
-	insertVertex(mesh, tri, mesh->m_vertexArray[0]);
+	insertVertex(mesh, plane, tri, mesh->m_vertexArray[0]);
 }
 
-void triangulation(CP_TriagleMesh *mesh)
+void triangulation(CP_TriagleMesh *mesh, CP_Plane *plane)
 {
 	int vsize = mesh->m_vertexArray.size() - 3;
 	for (int outer_loop = 1; outer_loop < vsize; outer_loop++)
 	{
-		TRACE("outer loop #%d\n", outer_loop);
+		// TRACE("outer loop #%d\n", outer_loop);
 		CP_MeshVertexPtr vertex = mesh->m_vertexArray[outer_loop];
 		CP_MeshTriaglePtr tri = NULL;
 		vector<pair<CP_MeshVertexPtr, double> > distances;
-		findClosestPoints(mesh, vertex, distances);
-		for (int i = 0; i < distances.size(); i++ && tri == NULL)
+
+		vector<pair<int, double> > points;
+		serachNearestVertex(*plane, CP_PlanePoint(vertex->index, vertex->m_x, vertex->m_y), points);
+		for (int i = 0; i < points.size() && tri == NULL; i++)
 		{
-			for (int j = 0; j < distances[i].first->m_triagles.size(); j++ && tri == NULL)
+			CP_MeshVertexPtr neighbor = mesh->m_vertexArray[points[i].first];
+			for (int j = 0; j < neighbor->m_triagles.size() && tri == NULL; j++)
 			{
-				if (testVertexInTriagle(distances[i].first->m_triagles[j], vertex))
+				if (testVertexInTriagle(neighbor->m_triagles[j], vertex))
 				{
-					tri = distances[i].first->m_triagles[j];
+					//TRACE("####%d\n", points[i].first);
+					tri = neighbor->m_triagles[j];
 					break;
 				}
 			}
 		}
-		insertVertex(mesh, tri, vertex);
+		if (tri == NULL)
+		{
+			for (auto iter = mesh->m_vertexArray.end() - 3; iter != mesh->m_vertexArray.end(); iter++)
+			{
+				for (int i = (*iter)->m_triagles.size() - 1; i >= 0; i--)
+				{
+					if (testVertexInTriagle((*iter)->m_triagles[i], vertex))
+					{
+						tri = (*iter)->m_triagles[i];
+						//TRACE("####%d\n", distances[i].first->index);
+						break;
+					}
+				}
+			}
+
+			//findClosestPoints(mesh, vertex, distances);
+			//for (int i = 0; i < distances.size() && tri == NULL; i++)
+			//{
+			//	for (int j = 0; j < distances[i].first->m_triagles.size() && tri == NULL; j++)
+			//	{
+			//		if (testVertexInTriagle(distances[i].first->m_triagles[j], vertex))
+			//		{
+			//			tri = distances[i].first->m_triagles[j];
+			//			//TRACE("####%d\n", distances[i].first->index);
+			//			break;
+			//		}
+			//	}
+			//}
+		}
+
+		insertVertex(mesh, plane, tri, vertex);
 		VT_MeshTriaglePointerArray tris;
 		for (auto iter = mesh->m_triagleArray.end() - 3; iter != mesh->m_triagleArray.end(); iter++)
 		{
@@ -459,7 +496,7 @@ void triangulation(CP_TriagleMesh *mesh)
 		}
 		while (!tris.empty())
 		{
-			TRACE("outer loop #%d test #%d\n", outer_loop, tris.size());
+			// TRACE("outer loop #%d test #%d\n", outer_loop, tris.size());
 			testEmptyCircumcircle(mesh, tris);
 		}
 	}
@@ -476,7 +513,7 @@ void finalisation(CP_TriagleMesh *mesh)
 			removeTriagle((*iter)->m_triagles[i]);
 		}
 	}
-	TRACE("finalized\n");
+	// TRACE("finalized\n");
 }
 
 bool intersectEdgeEdge(const CP_MeshEdgePtr &edge1, const CP_MeshEdgePtr &edge2)
@@ -608,12 +645,12 @@ void insertEdgeCDT(CP_TriagleMesh *mesh)
 					}
 				}
 			}
-			TRACE("edge %d %d remove triagle %d %d %d!\n",
-				edge->m_a->index,
-				edge->m_b->index,
-				old_tri_seq->m_vertex[0]->index,
-				old_tri_seq->m_vertex[1]->index,
-				old_tri_seq->m_vertex[2]->index);
+			//TRACE("edge %d %d remove triagle %d %d %d!\n",
+			//	edge->m_a->index,
+			//	edge->m_b->index,
+			//	old_tri_seq->m_vertex[0]->index,
+			//	old_tri_seq->m_vertex[1]->index,
+			//	old_tri_seq->m_vertex[2]->index);
 			removeTriagle(old_tri_seq);
 		}
 
@@ -656,7 +693,7 @@ void insertEdgeCDT(CP_TriagleMesh *mesh)
 		tris.insert(tris.begin(), mesh->m_triagleArray.begin() + init_fsize, mesh->m_triagleArray.end());
 		while (!tris.empty())
 		{
-			TRACE("test #%d\n", tris.size());
+			// TRACE("test #%d\n", tris.size());
 			testEmptyCircumcircle(mesh, tris);
 		}
 	}
@@ -698,9 +735,9 @@ void triangulatePseudoPolygon(CP_TriagleMesh *mesh, VT_MeshVertexPointerArray &p
 		edge->m_b->m_triagles.push_back(mesh->m_triagleArray.back());
 		c->m_triagles.push_back(mesh->m_triagleArray.back());
 
-		TRACE("add triagle %d %d %d!\n",
-			mesh->m_triagleArray.back()->m_vertex[0]->index,
-			mesh->m_triagleArray.back()->m_vertex[1]->index,
-			mesh->m_triagleArray.back()->m_vertex[2]->index);
+		 //TRACE("add triagle %d %d %d!\n",
+			//mesh->m_triagleArray.back()->m_vertex[0]->index,
+			//mesh->m_triagleArray.back()->m_vertex[1]->index,
+			//mesh->m_triagleArray.back()->m_vertex[2]->index);
 	}
 }
