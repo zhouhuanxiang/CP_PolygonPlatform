@@ -67,8 +67,8 @@ void initializationPlane(CP_Plane &plane, int n, double xmin, double xmax, doubl
 	double ratioXY = (xmax - xmin) / (ymax - ymin);
 	plane.m_xmin = xmin;
 	plane.m_ymin = ymin;
-	plane.m_xcells = ratioXY * sqrt(n + 1.0) / 2.0;
-	plane.m_ycells = sqrt(n + 1.0) * ratioXY / 2.0;
+	plane.m_xcells = ratioXY * sqrt(n) / 2.0 + 1;
+	plane.m_ycells = sqrt(n) * ratioXY / 2.0 + 1;
 	plane.m_xsize = 1.1 * (xmax - xmin) / plane.m_xcells;
 	plane.m_ysize = 1.1 * (ymax - ymin) / plane.m_ycells;
 	plane.threshold = 4.0 * n / (plane.m_xcells * plane.m_ycells);

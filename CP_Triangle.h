@@ -98,8 +98,10 @@ class CP_TriagleMesh
 public:
 	VT_MeshTriaglePointerArray m_triagleArray;
 	VT_MeshVertexPointerArray m_vertexArray;
-	SET_MeshEdgePointerArray m_edgeArray;
+	VT_MeshEdgePointerArray m_edgeArray;
+	SET_MeshEdgePointerArray m_constrainedEdgeSet;
 	CP_Polygon* m_polygon;
+	double xmin, ymin;
 public:
 	CP_TriagleMesh() : m_polygon(NULL) { }
 	void mb_clear();

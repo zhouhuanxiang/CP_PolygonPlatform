@@ -221,6 +221,17 @@ void CCP_PolygonPlatformView::OnDraw(CDC* pDC)
 	GetClientRect(&r);
 	if (pDoc->m_flagShowTriangleFace)
 	{
+		for (const CP_MeshEdgePtr &e : pDoc->m_triagleMesh.m_edgeArray)
+		{
+			VT_PointArray pa(2);
+			pa[0] = CP_Point(e->m_a->m_x, e->m_a->m_y);
+			pa[1] = CP_Point(e->m_b->m_x, e->m_b->m_y);
+			gb_drawPointArrayLine(pDC, pa,
+				pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
+				200, 0, 255,
+				3);
+		}
+		// TODO
 		for (auto &iter : pDoc->m_triagleMesh.m_triagleArray)
 		{
 			if (iter->exits())
@@ -235,7 +246,7 @@ void CCP_PolygonPlatformView::OnDraw(CDC* pDC)
 				gb_drawPointArrayLoop(pDC, pa,
 					pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
 					200, 0, 255,
-					1);
+					3);
 			}
 		}
 	} // if (pDoc->m_flagShowTriangleFace)结束
@@ -247,11 +258,11 @@ void CCP_PolygonPlatformView::OnDraw(CDC* pDC)
 				pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
 				255, 0, 0,
 				0, 255, 0,
-				2);
+				5);
 			gb_drawPolygonPoint(pDC, pDoc->m_a,
 				pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
 				0, 0, 0,
-				3);
+				5);
 			if (pDoc->m_flagShowPointID)
 				gb_drawPolygonPointID(pDC, pDoc->m_a,
 					pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
@@ -263,11 +274,11 @@ void CCP_PolygonPlatformView::OnDraw(CDC* pDC)
 				pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
 				255, 0, 255,
 				0, 0, 255,
-				1);
+				5);
 			gb_drawPolygonPoint(pDC, pDoc->m_b,
 				pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
 				0, 0, 0,
-				1);
+				5);
 			if (pDoc->m_flagShowPointID)
 				gb_drawPolygonPointID(pDC, pDoc->m_b,
 					pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
@@ -557,7 +568,9 @@ void gb_drawPolygonPointID(CDC* pDC, CP_Polygon& p,
 				v = p.m_regionArray[ir].m_loopArray[iL].m_pointIDArray[iLv];
 				gb_pointConvertFromGlobalToScreen(ps, p.m_pointArray[v],
 					scale, translation, screenX, screenY);
-				sprintf_s(buffer, 100, "[%1d]R%1dL%1dV%1d", v, ir, iL, iLv);
+				// TODO
+				//sprintf_s(buffer, 100, "[%1d]R%1dL%1dV%1d", v, ir, iL, iLv);
+				sprintf_s(buffer, 100, "P%1d", v);
 				pDC->TextOutA((int)(ps.m_x + 0.5), (int)(ps.m_y + 0.5), buffer);
 			} // for(iLv)结束
 		} // for(iL)结束
@@ -1760,7 +1773,7 @@ void CCP_PolygonPlatformView::OnViewTFace()
 		initialization(&pDoc->m_triagleMesh, &pDoc->m_plane);
 		triangulation(&pDoc->m_triagleMesh, &pDoc->m_plane);
 		finalisation(&pDoc->m_triagleMesh);
-		insertEdgeCDT(&pDoc->m_triagleMesh);
+		//insertEdgeCDT(&pDoc->m_triagleMesh);
 	}
 	else
 	{
