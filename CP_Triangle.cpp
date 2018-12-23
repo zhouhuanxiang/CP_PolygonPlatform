@@ -245,22 +245,23 @@ bool testEmptyCircumcircleTriagleVertex(const CP_MeshTriaglePtr &tri, const CP_M
 	CP_MeshVertexPtr A = tri->m_vertex[0];
 	CP_MeshVertexPtr B = tri->m_vertex[1];
 	CP_MeshVertexPtr C = tri->m_vertex[2];
-	double a = A->m_x - D->m_x;
-	double b = A->m_y - D->m_y;
-	double c = a * a + b * b;
-	double d = B->m_x - D->m_x;
-	double e = B->m_y - D->m_y;
-	double f = d * d + e * e;
-	double g = C->m_x - D->m_x;
-	double h = C->m_y - D->m_y;
-	double i = g * g + h * h;
+	double a = (A->m_x - D->m_x);
+	double b = (A->m_y - D->m_y);
+	double c = (a * a + b * b);
+	double d = (B->m_x - D->m_x);
+	double e = (B->m_y - D->m_y);
+	double f = (d * d + e * e);
+	double g = (C->m_x - D->m_x);
+	double h = (C->m_y - D->m_y);
+	double i = (g * g + h * h);
 	double det = a * e * i + b * f * g + c * d * h - c * e * g - b * d * i - a * f * h;
 
 	//if (det >= DBL_EPSILON)
 	//{
-	//	// TRACE("det %f\n", det);
+	//	 TRACE("det %.15f\n", det);
 	//}
-	return det < DBL_EPSILON;
+	return det <= DBL_EPSILON;
+	//return det < 1e-7;
 }
 
 void testArtificialTriagle(CP_TriagleMesh *mesh, const CP_MeshTriaglePtr &tri1, const CP_MeshTriaglePtr &tri2, bool &is_artificial, bool &is_flip)
@@ -519,6 +520,25 @@ void finalisation(CP_TriagleMesh *mesh)
 	// TRACE("finalized\n");
 }
 
+bool intersectSegmentSegment(double x1, double x2, double x3, double x4, double y1, double y2, double y3, double y4)
+{
+	double det = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+	if (abs(det) > DBL_EPSILON)
+	{
+		double x = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / det;
+		double y = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / det;
+		return (x - x1) * (x - x2) <= 0 && (y - y1) * (y - y2) <= 0
+			&& (x - x3) * (x - x4) <= 0 && (y - y3) * (y - y4) <= 0;
+	}
+	else
+	{
+		return ((x3 - x1) * (x3 - x2) <= 0 && (y3 - y1) * (y3 - y2) <= 0)
+			|| ((x4 - x1) * (x4 - x2) <= 0 && (y4 - y1) * (y4 - y2) <= 0)
+			|| ((x1 - x3) * (x1 - x4) <= 0 && (y1 - y3) * (y1 - y4) <= 0)
+			|| ((x2 - x3) * (x2 - x4) <= 0 && (y2 - y3) * (y2 - y4) <= 0);
+	}
+}
+
 bool intersectEdgeEdge(const CP_MeshEdgePtr &edge1, const CP_MeshEdgePtr &edge2)
 {
 	// https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
@@ -539,21 +559,7 @@ bool intersectEdgeEdge(const CP_MeshEdgePtr &edge1, const CP_MeshEdgePtr &edge2)
 	double x4 = edge2->m_b->m_x;
 	double y4 = edge2->m_b->m_y;
 
-	double det = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-	if (abs(det) > DBL_EPSILON)
-	{
-		double x = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / det;
-		double y = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / det;
-		return (x - x1) * (x - x2) <= 0 && (y - y1) * (y - y2) <= 0
-			&& (x - x3) * (x - x4) <= 0 && (y - y3) * (y - y4) <= 0;
-	}
-	else
-	{
-		return ((x3 - x1) * (x3 - x2) <= 0 && (y3 - y1) * (y3 - y2) <= 0)
-			|| ((x4 - x1) * (x4 - x2) <= 0 && (y4 - y1) * (y4 - y2) <= 0)
-			|| ((x1 - x3) * (x1 - x4) <= 0 && (y1 - y3) * (y1 - y4) <= 0)
-			|| ((x2 - x3) * (x2 - x4) <= 0 && (y2 - y3) * (y2 - y4) <= 0);
-	}
+	return intersectSegmentSegment(x1, x2, x3, x4, y1, y2, y3, y4);
 }
 
 bool intersectEdgeTriagle(const CP_MeshEdgePtr &edge, const CP_MeshTriaglePtr &tri)

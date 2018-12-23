@@ -27,6 +27,7 @@ public:
 	// //////////////////////////////////////////////////////////////
 	// 下面变量不被保存
 	CP_Plane m_plane;
+	bool m_checked;
 
 	int  m_flagSelectPolygon, m_flagSelectRegion, m_flagSelectID;
 	// 定位拾取的内容

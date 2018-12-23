@@ -156,6 +156,8 @@ extern void triangulation(CP_TriagleMesh *mesh, CP_Plane *plane);
 
 extern void finalisation(CP_TriagleMesh *mesh);
 
+extern bool intersectSegmentSegment(double x1, double x2, double x3, double x4, double y1, double y2, double y3, double y4);
+
 extern bool intersectEdgeEdge(const CP_MeshEdgePtr &edge1, const CP_MeshEdgePtr &edge2);
 
 extern bool intersectEdgeTriagle(const CP_MeshEdgePtr &edge, const CP_MeshTriaglePtr &tri);

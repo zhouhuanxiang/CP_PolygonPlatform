@@ -77,6 +77,7 @@ BEGIN_MESSAGE_MAP(CCP_PolygonPlatformView, CView)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_LBUTTONUP()
 	ON_WM_MOUSEMOVE()
+	ON_COMMAND(ID_CHECK, &CCP_PolygonPlatformView::OnCheck)
 END_MESSAGE_MAP()
 
 // CCP_PolygonPlatformView 构造/析构
@@ -232,23 +233,23 @@ void CCP_PolygonPlatformView::OnDraw(CDC* pDC)
 				3);
 		}
 		// TODO
-		for (auto &iter : pDoc->m_triagleMesh.m_triagleArray)
-		{
-			if (iter->exits())
-			{
-				VT_PointArray pa(3);
+		//for (auto &iter : pDoc->m_triagleMesh.m_triagleArray)
+		//{
+		//	if (iter->exits())
+		//	{
+		//		VT_PointArray pa(3);
 
-				for (int i = 0; i < 3; i++)
-				{
-					CP_MeshVertexPtr vertex = iter->m_vertex[i];
-					pa[i] = CP_Point(vertex->m_x, vertex->m_y);
-				}
-				gb_drawPointArrayLoop(pDC, pa,
-					pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
-					200, 0, 255,
-					3);
-			}
-		}
+		//		for (int i = 0; i < 3; i++)
+		//		{
+		//			CP_MeshVertexPtr vertex = iter->m_vertex[i];
+		//			pa[i] = CP_Point(vertex->m_x, vertex->m_y);
+		//		}
+		//		gb_drawPointArrayLoop(pDC, pa,
+		//			pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
+		//			200, 0, 255,
+		//			3);
+		//	}
+		//}
 	} // if (pDoc->m_flagShowTriangleFace)结束
 	if (!pDoc->m_flagShowSelect)
 	{
@@ -569,8 +570,8 @@ void gb_drawPolygonPointID(CDC* pDC, CP_Polygon& p,
 				gb_pointConvertFromGlobalToScreen(ps, p.m_pointArray[v],
 					scale, translation, screenX, screenY);
 				// TODO
-				//sprintf_s(buffer, 100, "[%1d]R%1dL%1dV%1d", v, ir, iL, iLv);
-				sprintf_s(buffer, 100, "P%1d", v);
+				sprintf_s(buffer, 100, "[%1d]R%1dL%1dV%1d", v, ir, iL, iLv);
+				//sprintf_s(buffer, 100, "P%1d", v);
 				pDC->TextOutA((int)(ps.m_x + 0.5), (int)(ps.m_y + 0.5), buffer);
 			} // for(iLv)结束
 		} // for(iL)结束
@@ -661,8 +662,6 @@ void CCP_PolygonPlatformView::OnRButtonUp(UINT /* nFlags */, CPoint point)
 		return;
 	} // 外if结束
 }
-
-
 
 // CCP_PolygonPlatformView 消息处理程序
 void CCP_PolygonPlatformView::OnUpdateComboAorb(CCmdUI *pCmdUI)
@@ -1766,18 +1765,25 @@ void CCP_PolygonPlatformView::OnViewTFace()
 		return;
 	pDoc->m_flagShowTriangleFace ^= true;
 
-	if (pDoc->m_a.m_pointArray.size() && pDoc->m_flagShowTriangleFace)
+	if (pDoc->m_flagShowTriangleFace)
 	{
-		initTriagleMesh(&pDoc->m_triagleMesh, &pDoc->m_a);
-		pDoc->m_plane.mb_clear();
-		initialization(&pDoc->m_triagleMesh, &pDoc->m_plane);
-		triangulation(&pDoc->m_triagleMesh, &pDoc->m_plane);
-		finalisation(&pDoc->m_triagleMesh);
-		//insertEdgeCDT(&pDoc->m_triagleMesh);
-	}
-	else
-	{
-		mb_statusSetText("没有有效的多边形", "请输入有效的多边形");
+		CP_Polygon *polygon = &pDoc->m_a;
+		if(pDoc->m_flagBuildA == false)
+			polygon = &pDoc->m_b;
+		if (polygon->m_pointArray.size())
+		{
+			initTriagleMesh(&pDoc->m_triagleMesh, polygon);
+			pDoc->m_plane.mb_clear();
+			initialization(&pDoc->m_triagleMesh, &pDoc->m_plane);
+			triangulation(&pDoc->m_triagleMesh, &pDoc->m_plane);
+			finalisation(&pDoc->m_triagleMesh);
+			insertEdgeCDT(&pDoc->m_triagleMesh);
+		}
+		else
+		{
+			MessageBox("当前选择的多边形不符合三角剖分的条件。", "操作错误");
+		}
+		polygon = NULL;
 	}
 
 	Invalidate(); // 刷新
@@ -1793,3 +1799,279 @@ void CCP_PolygonPlatformView::OnUpdateViewTFace(CCmdUI *pCmdUI)
 	pCmdUI->SetCheck(pDoc->m_flagShowTriangleFace);
 }
 
+
+
+void CCP_PolygonPlatformView::OnCheck()
+{
+	CCP_PolygonPlatformDoc* pDoc = GetDocument();
+	ASSERT_VALID(pDoc);
+	if (!pDoc)
+		return;
+	CP_Polygon *polygon = &pDoc->m_a;
+	if (pDoc->m_flagBuildA == false)
+		polygon = &pDoc->m_b;
+
+	bool valid = true;
+	for (int i = 0; i < polygon->m_regionArray.size() && valid; i++)
+	{
+		CP_Region &region = polygon->m_regionArray[i];
+		// 检测自交
+		for (int j = 0; j < region.m_loopArray.size() && valid; j++)
+		{
+			CP_Loop &loop = region.m_loopArray[j];
+			valid = gb_testSelfIntersection(loop);
+		}
+		// 检测内环均在外环内部
+		CP_Loop &loop0 = region.m_loopArray[0];
+		for (int j = 1; j < region.m_loopArray.size() && valid; j++)
+		{
+			CP_Loop &loop1 = region.m_loopArray[j];
+			valid = gb_testLoopInsideLoop(loop0, loop1);
+			for (int k = j + 1; k < region.m_loopArray.size() && valid; k++)
+			{
+				CP_Loop &loop2 = region.m_loopArray[k];
+				valid = gb_testLoopOutsideLoop(loop1, loop2);
+			}
+		}
+		// 检测外环均在其他region的外环外部
+		// 或者在其他region的内环内部
+		for (int j = i + 1; j < polygon->m_regionArray.size() && valid; j++)
+		{
+			CP_Loop &loop1 = polygon->m_regionArray[j].m_loopArray[0];
+			valid = gb_testLoopOutsideLoop(loop0, loop1);
+			if (!valid)
+			{
+				for (int k = 1; k < region.m_loopArray.size() && !valid; k++)
+				{
+					CP_Loop &loop2 = region.m_loopArray[k];
+					valid = gb_testLoopInsideLoop(loop2, loop1);
+				}
+			}
+		}
+		// 检测环的方向
+		for (int j = 0; j < region.m_loopArray.size() && valid; j++)
+		{
+			CP_Loop &loop1 = region.m_loopArray[j];
+			gb_adjustOrientation(loop1, j == 0);
+		}
+	}
+	if (!valid)
+	{
+		MessageBox("当前多边形不合法。", "合法性检查错误");
+	}
+	else
+	{
+		mb_statusSetText("合法性检查正确。", "合法性检查正确");
+	}
+}
+
+void gb_adjustOrientation(CP_Loop &loop, bool ccw)
+{
+	int size = loop.m_pointIDArray.size();
+	int tmp = 0;
+	for (int i = 0; i < size - 1; i++)
+	{
+		CP_Point &p1 = loop.m_polygon->m_pointArray[loop.m_pointIDArray[i]];
+		CP_Point &p2 = loop.m_polygon->m_pointArray[loop.m_pointIDArray[(i + 1) % size]];
+		tmp += -0.5 * (p2.m_y + p1.m_y) * (p2.m_x - p1.m_x);
+	}
+	bool valid;
+	if (ccw = true)
+	{
+		valid = tmp > 0;
+	}
+	else
+	{
+		valid = tmp < 0;
+	}
+	if (!valid)
+	{
+		reverse(loop.m_pointIDArray.begin(), loop.m_pointIDArray.end());
+	}
+}
+
+bool gb_testSelfIntersection(CP_Loop &loop)
+{
+	int size = loop.m_pointIDArray.size();
+	for (int i = 0; i < size; i++)
+	{
+		CP_Point &p1 = loop.m_polygon->m_pointArray[loop.m_pointIDArray[i]];
+		for (int j = i + 1; j < size; j++)
+		{
+			CP_Point &p2 = loop.m_polygon->m_pointArray[loop.m_pointIDArray[j]];
+			if (p1.m_x == p2.m_x && p1.m_y == p2.m_y)
+			{
+				return false;
+			}
+		}
+	}
+	for (int i = 0; i < size; i++)
+	{
+		CP_Point &p1 = loop.m_polygon->m_pointArray[loop.m_pointIDArray[i]];
+		CP_Point &p2 = loop.m_polygon->m_pointArray[loop.m_pointIDArray[(i + 1) % size]];
+		CP_Point &p3 = loop.m_polygon->m_pointArray[loop.m_pointIDArray[(i + 2) % size]];
+		double det = (p2.m_x - p1.m_x) * (p3.m_y - p1.m_y) - (p2.m_y - p1.m_y) * (p3.m_x - p1.m_x);
+		if (abs(det) < DBL_EPSILON)
+		{
+			if ((p2.m_x - p1.m_x) * (p3.m_x - p1.m_x) > 0
+				|| (p2.m_y - p1.m_y) * (p3.m_y - p1.m_y) > 0)
+			{
+				return false;
+			}
+		}
+	}
+
+	for (int i = 0; i < size; i++)
+	{
+		CP_Point &p1 = loop.m_polygon->m_pointArray[loop.m_pointIDArray[i]];
+		CP_Point &p2 = loop.m_polygon->m_pointArray[loop.m_pointIDArray[(i + 1) % size]];
+		for (int j = i + 2; j < min(size, i + size - 1); j++)
+		{
+			CP_Point &p3 = loop.m_polygon->m_pointArray[loop.m_pointIDArray[j]];
+			CP_Point &p4 = loop.m_polygon->m_pointArray[loop.m_pointIDArray[(j + 1) % size]];
+			if (intersectSegmentSegment(p1.m_x, p2.m_x, p3.m_x, p4.m_x, p1.m_y, p2.m_y, p3.m_y, p4.m_y))
+			{
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+bool gb_testLoopOutsideLoop(CP_Loop &loop1, CP_Loop &loop2)
+{
+	int size1 = loop1.m_pointIDArray.size();
+	int size2 = loop2.m_pointIDArray.size();
+	vector<int> point_mark1(size1);
+	vector<int> point_mark2(size2);
+	//
+	for (int i = 0; i < size1; i++)
+	{
+		CP_Point &point = loop1.m_polygon->m_pointArray[loop1.m_pointIDArray[i]];
+		int tmp = gb_testPointInsideLoop(point, loop2);
+		if (tmp > 0)
+		{
+			return false;
+		}
+		point_mark1[i] = tmp;
+	}
+	for (int i = 0; i < size1; i++)
+	{
+		if (point_mark1[i] + point_mark1[(i + 1) % size1] == 0)
+		{
+			return false;
+		}
+	}
+	//
+	for (int i = 0; i < size2; i++)
+	{
+		CP_Point &point = loop2.m_polygon->m_pointArray[loop2.m_pointIDArray[i]];
+		int tmp = gb_testPointInsideLoop(point, loop1);
+		if (tmp > 0)
+		{
+			return false;
+		}
+		point_mark2[i] = tmp;
+	}
+	for (int i = 0; i < size2; i++)
+	{
+		if (point_mark2[i] + point_mark2[(i + 1) % size2] == 0)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool gb_testLoopInsideLoop(CP_Loop &outside, CP_Loop &inside)
+{
+	int osize = outside.m_pointIDArray.size();
+	int isize = inside.m_pointIDArray.size();
+	vector<int> ipoint_mark(isize);
+	vector<int> opoint_mark(osize);
+	//
+	for (int i = 0; i < isize; i++)
+	{
+		CP_Point &point = inside.m_polygon->m_pointArray[inside.m_pointIDArray[i]];
+		int tmp = gb_testPointInsideLoop(point, outside);
+		if (tmp < 0)
+		{
+			return false;
+		}
+		ipoint_mark[i] = tmp;
+	}
+	for (int i = 0; i < isize; i++)
+	{
+		if (ipoint_mark[i] + ipoint_mark[(i + 1) % isize] == 0)
+		{
+			return false;
+		}
+	}
+	//
+	for (int i = 0; i < osize; i++)
+	{
+		CP_Point &point = outside.m_polygon->m_pointArray[outside.m_pointIDArray[i]];
+		int tmp = gb_testPointInsideLoop(point, inside);
+		if (tmp > 0)
+		{
+			return false;
+		}
+		opoint_mark[i] = tmp;
+	}
+	for (int i = 0; i < osize; i++)
+	{
+		if (opoint_mark[i] + opoint_mark[(i + 1) % osize] == 0)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+int gb_testPointInsideLoop(CP_Point &point, CP_Loop &loop)
+{
+	int size = loop.m_pointIDArray.size();
+	double x1 = point.m_x;
+	double y1 = point.m_y;
+	double x2 = x1 - 1000000;
+	double y2 = y1 - 1000001;
+	int intersect = 0;
+	for (int i = 0; i < size; i++)
+	{
+		CP_Point &p1 = loop.m_polygon->m_pointArray[loop.m_pointIDArray[i]];
+		CP_Point &p2 = loop.m_polygon->m_pointArray[loop.m_pointIDArray[(i + 1) % size]];
+		if (gb_testPointOnLine(x1, p1.m_x, p2.m_x, y1, p1.m_y, p2.m_y))
+		{
+			return 0;
+		}
+		if (intersectSegmentSegment(x1, x2, p1.m_x, p2.m_x, y1, y2, p1.m_y, p2.m_y))
+		{
+			intersect++;
+		}
+	}
+	if (intersect % 2 == 0)
+	{
+		return -1;
+	}
+	else
+	{
+		return 1;
+	}
+}
+
+bool gb_testPointOnLine(double x1, double x2, double x3, double y1, double y2, double y3)
+{
+	double det = (x2 - x1) * (y3 - y1) - (y2 - y1) * (x3 - x1);
+	if (abs(det) < DBL_EPSILON)
+	{
+		if ((x2 - x1) * (x3 - x1) <= 0
+			|| (y1 - y1) * (y3 - y1) <= 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}

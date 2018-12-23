@@ -91,6 +91,7 @@ public:
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+	afx_msg void OnCheck();
 };
 
 #ifndef _DEBUG  // CP_PolygonPlatformView.cpp 中的调试版本
@@ -126,5 +127,11 @@ extern void gb_drawPolygonPoint(CDC* pDC, CP_Polygon& p,
 extern void gb_drawPolygonPointID(CDC* pDC, CP_Polygon& p,
 	double scale, CP_Point translation, int screenX, int screenY,
 	int r, int g, int b);
+extern void gb_adjustOrientation(CP_Loop &loop, bool ccw);
+extern bool gb_testSelfIntersection(CP_Loop &loop);
+extern bool gb_testLoopOutsideLoop(CP_Loop &loop1, CP_Loop &loop2);
+extern bool gb_testLoopInsideLoop(CP_Loop &outside, CP_Loop &inside);
+extern int gb_testPointInsideLoop(CP_Point &point, CP_Loop &loop);
+extern bool gb_testPointOnLine(double x1, double x2, double x3, double y1, double y2, double y3);
 
 
