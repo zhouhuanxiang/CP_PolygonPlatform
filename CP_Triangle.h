@@ -138,7 +138,7 @@ extern CP_MeshVertexPtr& gb_oppositeVertex(const CP_MeshFacePtr &tri1, const CP_
 
 extern int gb_oppositeVertexIndex(const CP_MeshFacePtr& tri1, const CP_MeshFacePtr &tri2);
 
-extern CP_MeshFacePtr gb_gb_flipTriagle(CP_MeshFacePtr tri1, CP_MeshFacePtr tri2);
+extern CP_MeshFacePtr gb_flipTriagle(CP_MeshFacePtr tri1, CP_MeshFacePtr tri2);
 
 extern bool gb_testEmptyCircumcircleTriagleVertex(const CP_MeshFacePtr &tri, const CP_MeshVertexPtr &D);
 

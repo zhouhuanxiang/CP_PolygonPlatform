@@ -1,6 +1,14 @@
+
+#include "predicates.h"
+
 #include "stdafx.h"
 
 #include "CP_Triangle.h"
+
+
+extern "C" {
+	REAL incirclefast(REAL *pa, REAL *pb, REAL *pc, REAL *pd);
+}
 
 void CP_TriagleMesh::mb_clear()
 {
@@ -242,9 +250,59 @@ CP_MeshFacePtr gb_flipTriagle(CP_MeshFacePtr tri1, CP_MeshFacePtr tri2)
 
 bool gb_testEmptyCircumcircleTriagleVertex(const CP_MeshFacePtr &tri, const CP_MeshVertexPtr &D)
 {
+	// https://www.newcastle.edu.au/__data/assets/pdf_file/0017/22508/13_A-fast-algorithm-for-constructing-Delaunay-triangulations-in-the-plane.pdf
 	CP_MeshVertexPtr A = tri->m_vertex[0];
 	CP_MeshVertexPtr B = tri->m_vertex[1];
 	CP_MeshVertexPtr C = tri->m_vertex[2];
+
+	double pa[2] = { A->m_x, A->m_y };
+	double pb[2] = { B->m_x, B->m_y };
+	double pc[2] = { C->m_x, C->m_y };
+	double pd[2] = { D->m_x, D->m_y };
+	incirclefast(pa, pb, pc, pd);
+
+	/*double x1 = A->m_x;
+	double x2 = B->m_x;
+	double x3 = C->m_x;
+	double xp = D->m_x;
+	double y1 = A->m_y;
+	double y2 = B->m_y;
+	double y3 = C->m_y;
+	double yp = D->m_y;
+
+	double x13 = x1 - x3;
+	double x23 = x2 - x3;
+	double x1p = x1 - xp;
+	double x2p = x2 - xp;
+	double y13 = y1 - y3;
+	double y23 = y2 - y3;
+	double y1p = y1 - yp;
+	double y2p = y2 - yp;
+	double COSA = x13 * x23 + y13 * y23;
+	double COSB = x2p * x1p + y2p * y1p;
+	if (COSA >= 0 && COSB <= 0)
+	{
+		return true;
+	}
+	else if (COSA < 0 && COSB < 0)
+	{
+		return false;
+	}
+	else
+	{
+		double SINA = x13 * y23 - x23 * y13;
+		double SINB = x2p * y1p - x1p * y2p;
+		double SINAB = SINA * COSB + SINB * COSA;
+		if (SINAB < 0)
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}*/
+
 	double a = (A->m_x - D->m_x);
 	double b = (A->m_y - D->m_y);
 	double c = (a * a + b * b);
@@ -256,12 +314,13 @@ bool gb_testEmptyCircumcircleTriagleVertex(const CP_MeshFacePtr &tri, const CP_M
 	double i = (g * g + h * h);
 	double det = a * e * i + b * f * g + c * d * h - c * e * g - b * d * i - a * f * h;
 
-	//if (det >= DBL_EPSILON)
-	//{
-	//	 TRACE("det %.15f\n", det);
-	//}
+	if (det >= DBL_EPSILON)
+	{
+		 TRACE("det %.15f\n", det);
+		 TRACE("%.20f %.20f %.20f %.20f %.20f %.20f %.20f %.20f %.20f\n", a, b, c, d, e, f, g, h, i);
+	}
 	return det <= DBL_EPSILON;
-	//return det < 1e-7;
+	return det < 1e-7;
 }
 
 void gb_testArtificialTriagle(CP_TriagleMesh *mesh, const CP_MeshFacePtr &tri1, const CP_MeshFacePtr &tri2, bool &is_artificial, bool &is_flip)
