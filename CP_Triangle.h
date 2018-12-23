@@ -111,61 +111,61 @@ public:
 	}
 }; // 类CP_TriagleMesh定义结束
 
-extern void initTriagleMesh(CP_TriagleMesh *mesh, CP_Polygon* polygon);
+extern void gb_initTriagleMesh(CP_TriagleMesh *mesh, CP_Polygon* polygon);
 
 template <class T>
-extern void replaceByValue(T *list, int size, const T &from, const T &to);
+extern void gb_replaceArrayByValue(T *list, int size, const T &from, const T &to);
 
 template <class T>
-extern void eraseByValue(vector<T> &list, const T &val);
+extern void gb_eraseArrayByValue(vector<T> &list, const T &val);
 
 template <class T>
-extern void insertByValue(vector<T> &list, const T &val);
+extern void gb_insertArrayByValue(vector<T> &list, const T &val);
 
-extern double distanceVertex2Vertex(const CP_MeshVertexPtr &v1, const CP_MeshVertexPtr &v2);
+extern double gb_distanceVertex2Vertex(const CP_MeshVertexPtr &v1, const CP_MeshVertexPtr &v2);
 
-extern void findClosestPoints(CP_TriagleMesh *mesh, const CP_MeshVertexPtr &vertex, vector<pair<CP_MeshVertexPtr, double> > &distances);
+extern void gb_findClosestPoints(CP_TriagleMesh *mesh, const CP_MeshVertexPtr &vertex, vector<pair<CP_MeshVertexPtr, double> > &distances);
 
-extern void getBoundingBox(CP_TriagleMesh *mesh, double &xmin, double &xmax, double &ymin, double &ymax);
+extern void gb_getBoundingBox(CP_TriagleMesh *mesh, double &xmin, double &xmax, double &ymin, double &ymax);
 
-extern void getTriagleCoord(const CP_MeshFacePtr &tri, const CP_MeshVertexPtr &vertex, double &l1, double &l2, double &l3);
+extern void gb_getTriagleCoord(const CP_MeshFacePtr &tri, const CP_MeshVertexPtr &vertex, double &l1, double &l2, double &l3);
 
-extern bool testVertexInTriagle(const CP_MeshFacePtr &tri, const CP_MeshVertexPtr &vertex);
+extern bool gb_testVertexInTriagle(const CP_MeshFacePtr &tri, const CP_MeshVertexPtr &vertex);
 
-extern CP_MeshFacePtr& oppositeTriagle(const CP_MeshFacePtr &tri, const CP_MeshVertexPtr &vertex);
+extern CP_MeshFacePtr& gb_oppositeTriagle(const CP_MeshFacePtr &tri, const CP_MeshVertexPtr &vertex);
 
-extern CP_MeshVertexPtr& oppositeVertex(const CP_MeshFacePtr &tri1, const CP_MeshFacePtr &tri2);
+extern CP_MeshVertexPtr& gb_oppositeVertex(const CP_MeshFacePtr &tri1, const CP_MeshFacePtr &tri2);
 
-extern int oppositeVertexIndex(const CP_MeshFacePtr& tri1, const CP_MeshFacePtr &tri2);
+extern int gb_oppositeVertexIndex(const CP_MeshFacePtr& tri1, const CP_MeshFacePtr &tri2);
 
-extern CP_MeshFacePtr flipTriagle(CP_MeshFacePtr tri1, CP_MeshFacePtr tri2);
+extern CP_MeshFacePtr gb_gb_flipTriagle(CP_MeshFacePtr tri1, CP_MeshFacePtr tri2);
 
-extern bool testEmptyCircumcircleTriagleVertex(const CP_MeshFacePtr &tri, const CP_MeshVertexPtr &D);
+extern bool gb_testEmptyCircumcircleTriagleVertex(const CP_MeshFacePtr &tri, const CP_MeshVertexPtr &D);
 
-extern void testArtificialTriagle(CP_TriagleMesh *mesh, const CP_MeshFacePtr &tri1, const CP_MeshFacePtr &tri2, bool &is_artificial, bool &is_flip);
+extern void gb_testArtificialTriagle(CP_TriagleMesh *mesh, const CP_MeshFacePtr &tri1, const CP_MeshFacePtr &tri2, bool &is_artificial, bool &is_flip);
 
-extern void testEmptyCircumcircle(CP_TriagleMesh *mesh, VT_MeshTriaglePointerArray &tris);
+extern void gb_testEmptyCircumcircle(CP_TriagleMesh *mesh, VT_MeshTriaglePointerArray &tris);
 
-extern void insertVertex(CP_TriagleMesh *mesh, CP_Plane *plane, CP_MeshFacePtr &tri, CP_MeshVertexPtr &vertex);
+extern void gb_insertVertex(CP_TriagleMesh *mesh, CP_Plane *plane, CP_MeshFacePtr &tri, CP_MeshVertexPtr &vertex);
 
-extern void removeTriagle(CP_MeshFacePtr &tri);
+extern void gb_removeTriagle(CP_MeshFacePtr &tri);
 
-extern void initialization(CP_TriagleMesh *mesh, CP_Plane *plane);
+extern void gb_initialization(CP_TriagleMesh *mesh, CP_Plane *plane);
 
-extern void triangulation(CP_TriagleMesh *mesh, CP_Plane *plane);
+extern void gb_triangulation(CP_TriagleMesh *mesh, CP_Plane *plane);
 
-extern void finalisation(CP_TriagleMesh *mesh);
+extern void gb_finalisation(CP_TriagleMesh *mesh);
 
-extern bool intersectSegmentSegment(double x1, double x2, double x3, double x4, double y1, double y2, double y3, double y4);
+extern bool gb_intersectSegmentSegment(double x1, double x2, double x3, double x4, double y1, double y2, double y3, double y4);
 
-extern bool intersectEdgeEdge(const CP_MeshEdgePtr &edge1, const CP_MeshEdgePtr &edge2);
+extern bool gb_intersectEdgeEdge(const CP_MeshEdgePtr &edge1, const CP_MeshEdgePtr &edge2);
 
-extern bool intersectEdgeTriagle(const CP_MeshEdgePtr &edge, const CP_MeshFacePtr &tri);
+extern bool gb_intersectEdgeTriagle(const CP_MeshEdgePtr &edge, const CP_MeshFacePtr &tri);
 
-extern bool orientationVertexEdge(const CP_MeshEdgePtr &edge, const CP_MeshVertexPtr &vertex);
+extern bool gb_orientationVertexEdge(const CP_MeshEdgePtr &edge, const CP_MeshVertexPtr &vertex);
 
-extern void insertEdgeCDT(CP_TriagleMesh *mesh);
+extern void gb_insertEdgeCDT(CP_TriagleMesh *mesh);
 
-extern void triangulatePseudoPolygon(CP_TriagleMesh *mesh, VT_MeshVertexPointerArray &polygon, CP_MeshEdgePtr &edge);
+extern void gb_triangulatePseudoPolygon(CP_TriagleMesh *mesh, VT_MeshVertexPointerArray &polygon, CP_MeshEdgePtr &edge);
 
 #endif

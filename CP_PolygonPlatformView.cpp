@@ -1772,12 +1772,12 @@ void CCP_PolygonPlatformView::OnViewTFace()
 			polygon = &pDoc->m_b;
 		if (polygon->m_pointArray.size())
 		{
-			initTriagleMesh(&pDoc->m_triagleMesh, polygon);
+			gb_initTriagleMesh(&pDoc->m_triagleMesh, polygon);
 			pDoc->m_plane.mb_clear();
-			initialization(&pDoc->m_triagleMesh, &pDoc->m_plane);
-			triangulation(&pDoc->m_triagleMesh, &pDoc->m_plane);
-			finalisation(&pDoc->m_triagleMesh);
-			insertEdgeCDT(&pDoc->m_triagleMesh);
+			gb_initialization(&pDoc->m_triagleMesh, &pDoc->m_plane);
+			gb_triangulation(&pDoc->m_triagleMesh, &pDoc->m_plane);
+			gb_finalisation(&pDoc->m_triagleMesh);
+			gb_insertEdgeCDT(&pDoc->m_triagleMesh);
 		}
 		else
 		{
@@ -1930,7 +1930,7 @@ bool gb_testSelfIntersection(CP_Loop &loop)
 		{
 			CP_Point &p3 = loop.m_polygon->m_pointArray[loop.m_pointIDArray[j]];
 			CP_Point &p4 = loop.m_polygon->m_pointArray[loop.m_pointIDArray[(j + 1) % size]];
-			if (intersectSegmentSegment(p1.m_x, p2.m_x, p3.m_x, p4.m_x, p1.m_y, p2.m_y, p3.m_y, p4.m_y))
+			if (gb_intersectSegmentSegment(p1.m_x, p2.m_x, p3.m_x, p4.m_x, p1.m_y, p2.m_y, p3.m_y, p4.m_y))
 			{
 				return false;
 			}
@@ -2048,7 +2048,7 @@ int gb_testPointInsideLoop(CP_Point &point, CP_Loop &loop)
 		{
 			return 0;
 		}
-		if (intersectSegmentSegment(x1, x2, p1.m_x, p2.m_x, y1, y2, p1.m_y, p2.m_y))
+		if (gb_intersectSegmentSegment(x1, x2, p1.m_x, p2.m_x, y1, y2, p1.m_y, p2.m_y))
 		{
 			intersect++;
 		}
