@@ -13,33 +13,33 @@ using namespace std;
 #include "CP_Polygon.h"
 #include "CP_Plane.h"
 
-class CP_MeshTriagle;
+class CP_MeshFace;
 class CP_MeshVertex;
 class CP_MeshEdge;
 
-typedef shared_ptr<CP_MeshTriagle> CP_MeshTriaglePtr;
+typedef shared_ptr<CP_MeshFace> CP_MeshFacePtr;
 typedef shared_ptr<CP_MeshVertex> CP_MeshVertexPtr;
 typedef shared_ptr<CP_MeshEdge> CP_MeshEdgePtr;
 
-typedef vector<CP_MeshTriaglePtr> VT_MeshTriaglePointerArray;
+typedef vector<CP_MeshFacePtr> VT_MeshTriaglePointerArray;
 typedef vector<CP_MeshVertexPtr> VT_MeshVertexPointerArray;
 typedef vector<CP_MeshEdgePtr> VT_MeshEdgePointerArray;
 
 typedef set<CP_MeshEdgePtr> SET_MeshEdgePointerArray;
 
-class CP_MeshTriagle
+class CP_MeshFace
 {
 public:
 	CP_MeshVertexPtr m_vertex[3];
-	CP_MeshTriaglePtr m_neighbors[3];
+	CP_MeshFacePtr m_neighbors[3];
 	bool deleted;
 public:
-	CP_MeshTriagle()
+	CP_MeshFace()
 		:deleted(false)
 	{
 		m_neighbors[0] = NULL; m_neighbors[1] = NULL; m_neighbors[2] = NULL;
 	}
-	CP_MeshTriagle(CP_MeshVertexPtr p0, CP_MeshVertexPtr p1, CP_MeshVertexPtr p2)
+	CP_MeshFace(CP_MeshVertexPtr p0, CP_MeshVertexPtr p1, CP_MeshVertexPtr p2)
 		:deleted(false)
 	{
 		m_vertex[0] = p0; m_vertex[1] = p1; m_vertex[2] = p2;
@@ -128,27 +128,27 @@ extern void findClosestPoints(CP_TriagleMesh *mesh, const CP_MeshVertexPtr &vert
 
 extern void getBoundingBox(CP_TriagleMesh *mesh, double &xmin, double &xmax, double &ymin, double &ymax);
 
-extern void getTriagleCoord(const CP_MeshTriaglePtr &tri, const CP_MeshVertexPtr &vertex, double &l1, double &l2, double &l3);
+extern void getTriagleCoord(const CP_MeshFacePtr &tri, const CP_MeshVertexPtr &vertex, double &l1, double &l2, double &l3);
 
-extern bool testVertexInTriagle(const CP_MeshTriaglePtr &tri, const CP_MeshVertexPtr &vertex);
+extern bool testVertexInTriagle(const CP_MeshFacePtr &tri, const CP_MeshVertexPtr &vertex);
 
-extern CP_MeshTriaglePtr& oppositeTriagle(const CP_MeshTriaglePtr &tri, const CP_MeshVertexPtr &vertex);
+extern CP_MeshFacePtr& oppositeTriagle(const CP_MeshFacePtr &tri, const CP_MeshVertexPtr &vertex);
 
-extern CP_MeshVertexPtr& oppositeVertex(const CP_MeshTriaglePtr &tri1, const CP_MeshTriaglePtr &tri2);
+extern CP_MeshVertexPtr& oppositeVertex(const CP_MeshFacePtr &tri1, const CP_MeshFacePtr &tri2);
 
-extern int oppositeVertexIndex(const CP_MeshTriaglePtr& tri1, const CP_MeshTriaglePtr &tri2);
+extern int oppositeVertexIndex(const CP_MeshFacePtr& tri1, const CP_MeshFacePtr &tri2);
 
-extern CP_MeshTriaglePtr flipTriagle(CP_MeshTriaglePtr tri1, CP_MeshTriaglePtr tri2);
+extern CP_MeshFacePtr flipTriagle(CP_MeshFacePtr tri1, CP_MeshFacePtr tri2);
 
-extern bool testEmptyCircumcircleTriagleVertex(const CP_MeshTriaglePtr &tri, const CP_MeshVertexPtr &D);
+extern bool testEmptyCircumcircleTriagleVertex(const CP_MeshFacePtr &tri, const CP_MeshVertexPtr &D);
 
-extern void testArtificialTriagle(CP_TriagleMesh *mesh, const CP_MeshTriaglePtr &tri1, const CP_MeshTriaglePtr &tri2, bool &is_artificial, bool &is_flip);
+extern void testArtificialTriagle(CP_TriagleMesh *mesh, const CP_MeshFacePtr &tri1, const CP_MeshFacePtr &tri2, bool &is_artificial, bool &is_flip);
 
 extern void testEmptyCircumcircle(CP_TriagleMesh *mesh, VT_MeshTriaglePointerArray &tris);
 
-extern void insertVertex(CP_TriagleMesh *mesh, CP_Plane *plane, CP_MeshTriaglePtr &tri, CP_MeshVertexPtr &vertex);
+extern void insertVertex(CP_TriagleMesh *mesh, CP_Plane *plane, CP_MeshFacePtr &tri, CP_MeshVertexPtr &vertex);
 
-extern void removeTriagle(CP_MeshTriaglePtr &tri);
+extern void removeTriagle(CP_MeshFacePtr &tri);
 
 extern void initialization(CP_TriagleMesh *mesh, CP_Plane *plane);
 
@@ -160,7 +160,7 @@ extern bool intersectSegmentSegment(double x1, double x2, double x3, double x4, 
 
 extern bool intersectEdgeEdge(const CP_MeshEdgePtr &edge1, const CP_MeshEdgePtr &edge2);
 
-extern bool intersectEdgeTriagle(const CP_MeshEdgePtr &edge, const CP_MeshTriaglePtr &tri);
+extern bool intersectEdgeTriagle(const CP_MeshEdgePtr &edge, const CP_MeshFacePtr &tri);
 
 extern bool orientationVertexEdge(const CP_MeshEdgePtr &edge, const CP_MeshVertexPtr &vertex);
 

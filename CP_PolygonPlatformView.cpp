@@ -1827,6 +1827,7 @@ void CCP_PolygonPlatformView::OnCheck()
 		{
 			CP_Loop &loop1 = region.m_loopArray[j];
 			valid = gb_testLoopInsideLoop(loop0, loop1);
+			// 内环与内环不相交
 			for (int k = j + 1; k < region.m_loopArray.size() && valid; k++)
 			{
 				CP_Loop &loop2 = region.m_loopArray[k];
@@ -1913,8 +1914,8 @@ bool gb_testSelfIntersection(CP_Loop &loop)
 		double det = (p2.m_x - p1.m_x) * (p3.m_y - p1.m_y) - (p2.m_y - p1.m_y) * (p3.m_x - p1.m_x);
 		if (abs(det) < DBL_EPSILON)
 		{
-			if ((p2.m_x - p1.m_x) * (p3.m_x - p1.m_x) > 0
-				|| (p2.m_y - p1.m_y) * (p3.m_y - p1.m_y) > 0)
+			if ((p2.m_x - p1.m_x) * (p3.m_x - p1.m_x) <= 0
+				|| (p2.m_y - p1.m_y) * (p3.m_y - p1.m_y) <= 0)
 			{
 				return false;
 			}
