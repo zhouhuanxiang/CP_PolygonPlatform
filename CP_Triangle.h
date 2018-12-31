@@ -9,9 +9,15 @@ using namespace std;
 #include <algorithm>
 #include <iostream>
 #include <memory>
+#include <algorithm> 
 
 #include "CP_Polygon.h"
 #include "CP_Plane.h"
+
+extern "C"
+{
+#include "predicates.h"
+}
 
 class CP_MeshFace;
 class CP_MeshVertex;
@@ -140,6 +146,8 @@ extern int gb_oppositeVertexIndex(const CP_MeshFacePtr& tri1, const CP_MeshFaceP
 
 extern CP_MeshFacePtr gb_flipTriagle(CP_MeshFacePtr tri1, CP_MeshFacePtr tri2);
 
+extern int gb_orientationVertexEdge(double vx0, double vy0, double ex1, double ey1, double ex2, double ey2);
+
 extern bool gb_testEmptyCircumcircleTriagleVertex(const CP_MeshFacePtr &tri, const CP_MeshVertexPtr &D);
 
 extern void gb_testArtificialTriagle(CP_TriagleMesh *mesh, const CP_MeshFacePtr &tri1, const CP_MeshFacePtr &tri2, bool &is_artificial, bool &is_flip);
@@ -162,7 +170,7 @@ extern bool gb_intersectEdgeEdge(const CP_MeshEdgePtr &edge1, const CP_MeshEdgeP
 
 extern bool gb_intersectEdgeTriagle(const CP_MeshEdgePtr &edge, const CP_MeshFacePtr &tri);
 
-extern bool gb_orientationVertexEdge(const CP_MeshEdgePtr &edge, const CP_MeshVertexPtr &vertex);
+//extern bool gb_orientationVertexEdge(const CP_MeshEdgePtr &edge, const CP_MeshVertexPtr &vertex);
 
 extern void gb_insertEdgeCDT(CP_TriagleMesh *mesh);
 

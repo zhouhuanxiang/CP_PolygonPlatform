@@ -1,11 +1,18 @@
-#pragma once
+#ifndef PREDICATES_H_
+#define PREDICATES_H_
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
 #ifndef REAL
-#define REAL float                      /* float or double */
+#define REAL double                      /* float or double */
 #endif
 
-REAL incirclefast(REAL *pa, REAL *pb, REAL *pc, REAL *pd);
+void exactinit();
+
+REAL orient2d(REAL *pa, REAL *pb, REAL *pc);
+
+REAL incircle(REAL *pa, REAL *pb, REAL *pc, REAL *pd);
+
+#endif

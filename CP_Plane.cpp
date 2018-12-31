@@ -2,7 +2,7 @@
 
 #include "CP_Plane.h"
 
-#define BRUTE_LIMIT 100
+#define BRUTE_LIMIT 20
 #define SUBDIVIDE_LIMIT 16
 
 CP_GridLevelOne::CP_GridLevelOne(CP_Plane *plane)

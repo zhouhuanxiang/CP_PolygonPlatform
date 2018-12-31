@@ -1,14 +1,6 @@
-
-#include "predicates.h"
-
 #include "stdafx.h"
 
 #include "CP_Triangle.h"
-
-
-extern "C" {
-	REAL incirclefast(REAL *pa, REAL *pb, REAL *pc, REAL *pd);
-}
 
 void CP_TriagleMesh::mb_clear()
 {
@@ -35,6 +27,8 @@ void CP_TriagleMesh::mb_clear()
 
 void gb_initTriagleMesh(CP_TriagleMesh *mesh, CP_Polygon* polygon)
 {
+	exactinit();
+
 	mesh->mb_clear();
 
 	mesh->m_polygon = polygon;
@@ -248,6 +242,28 @@ CP_MeshFacePtr gb_flipTriagle(CP_MeshFacePtr tri1, CP_MeshFacePtr tri2)
 	return tri2;
 }
 
+int gb_orientationVertexEdge(double vx0, double vy0, double ex1, double ey1, double ex2, double ey2)
+{
+	double pa[2] = { ex1, ey1 };
+	double pb[2] = { ex2, ey2 };
+	double pc[2] = { vx0, vy0 };
+
+	double result = orient2d(pa, pb, pc);
+
+	if (result == 0)
+	{
+		return 0;
+	}
+	else if (result > 0)
+	{
+		return 1;
+	}
+	else
+	{
+		return -1;
+	}
+}
+
 bool gb_testEmptyCircumcircleTriagleVertex(const CP_MeshFacePtr &tri, const CP_MeshVertexPtr &D)
 {
 	// https://www.newcastle.edu.au/__data/assets/pdf_file/0017/22508/13_A-fast-algorithm-for-constructing-Delaunay-triangulations-in-the-plane.pdf
@@ -255,72 +271,23 @@ bool gb_testEmptyCircumcircleTriagleVertex(const CP_MeshFacePtr &tri, const CP_M
 	CP_MeshVertexPtr B = tri->m_vertex[1];
 	CP_MeshVertexPtr C = tri->m_vertex[2];
 
+	static int count = 0;
+
 	double pa[2] = { A->m_x, A->m_y };
 	double pb[2] = { B->m_x, B->m_y };
 	double pc[2] = { C->m_x, C->m_y };
 	double pd[2] = { D->m_x, D->m_y };
-	incirclefast(pa, pb, pc, pd);
+	double result = incircle(pa, pb, pc, pd);
 
-	/*double x1 = A->m_x;
-	double x2 = B->m_x;
-	double x3 = C->m_x;
-	double xp = D->m_x;
-	double y1 = A->m_y;
-	double y2 = B->m_y;
-	double y3 = C->m_y;
-	double yp = D->m_y;
+	TRACE("%.15f\n", result);
 
-	double x13 = x1 - x3;
-	double x23 = x2 - x3;
-	double x1p = x1 - xp;
-	double x2p = x2 - xp;
-	double y13 = y1 - y3;
-	double y23 = y2 - y3;
-	double y1p = y1 - yp;
-	double y2p = y2 - yp;
-	double COSA = x13 * x23 + y13 * y23;
-	double COSB = x2p * x1p + y2p * y1p;
-	if (COSA >= 0 && COSB <= 0)
+	if (count++ == 10000)
 	{
-		return true;
+		TRACE("%f\n", result);
+		system("pause");
 	}
-	else if (COSA < 0 && COSB < 0)
-	{
-		return false;
-	}
-	else
-	{
-		double SINA = x13 * y23 - x23 * y13;
-		double SINB = x2p * y1p - x1p * y2p;
-		double SINAB = SINA * COSB + SINB * COSA;
-		if (SINAB < 0)
-		{
-			return false;
-		}
-		else
-		{
-			return true;
-		}
-	}*/
 
-	double a = (A->m_x - D->m_x);
-	double b = (A->m_y - D->m_y);
-	double c = (a * a + b * b);
-	double d = (B->m_x - D->m_x);
-	double e = (B->m_y - D->m_y);
-	double f = (d * d + e * e);
-	double g = (C->m_x - D->m_x);
-	double h = (C->m_y - D->m_y);
-	double i = (g * g + h * h);
-	double det = a * e * i + b * f * g + c * d * h - c * e * g - b * d * i - a * f * h;
-
-	if (det >= DBL_EPSILON)
-	{
-		 TRACE("det %.15f\n", det);
-		 TRACE("%.20f %.20f %.20f %.20f %.20f %.20f %.20f %.20f %.20f\n", a, b, c, d, e, f, g, h, i);
-	}
-	return det <= DBL_EPSILON;
-	return det < 1e-7;
+	return result <= 0;
 }
 
 void gb_testArtificialTriagle(CP_TriagleMesh *mesh, const CP_MeshFacePtr &tri1, const CP_MeshFacePtr &tri2, bool &is_artificial, bool &is_flip)
@@ -356,7 +323,8 @@ void gb_testArtificialTriagle(CP_TriagleMesh *mesh, const CP_MeshFacePtr &tri1, 
 		//     如果v0 v2 在 v1v3 的同侧，则需要进行翻转
 		is_artificial = true;
 		CP_MeshEdgePtr edge = make_shared<CP_MeshEdge>(v0, v3);
-		if (gb_orientationVertexEdge(edge, v1) == gb_orientationVertexEdge(edge, v2))
+		if (gb_orientationVertexEdge(v1->m_x, v1->m_y, edge->m_a->m_x, edge->m_a->m_y, edge->m_b->m_x, edge->m_b->m_y)
+			== gb_orientationVertexEdge(v2->m_x, v2->m_y, edge->m_a->m_x, edge->m_a->m_y, edge->m_b->m_x, edge->m_b->m_y))
 		{
 			is_flip = true;
 		}
@@ -365,7 +333,8 @@ void gb_testArtificialTriagle(CP_TriagleMesh *mesh, const CP_MeshFacePtr &tri1, 
 	{
 		is_artificial = true;
 		CP_MeshEdgePtr edge = make_shared<CP_MeshEdge>(v0, v1);
-		if (gb_orientationVertexEdge(edge, v2) == gb_orientationVertexEdge(edge, v3))
+		if (gb_orientationVertexEdge(v3->m_x, v3->m_y, edge->m_a->m_x, edge->m_a->m_y, edge->m_b->m_x, edge->m_b->m_y)
+			== gb_orientationVertexEdge(v2->m_x, v2->m_y, edge->m_a->m_x, edge->m_a->m_y, edge->m_b->m_x, edge->m_b->m_y))
 		{
 			is_flip = true;
 		}
@@ -499,8 +468,16 @@ void gb_initialization(CP_TriagleMesh *mesh, CP_Plane *plane)
 void gb_triangulation(CP_TriagleMesh *mesh, CP_Plane *plane)
 {
 	int vsize = mesh->m_vertexArray.size() - 3;
-	for (int outer_loop = 1; outer_loop < vsize; outer_loop++)
+	vector<int> shuffled_index(vsize - 1);
+	for (int i = 0; i < vsize - 1; i++)
 	{
+		shuffled_index[i] = i + 1;
+	}
+	random_shuffle(shuffled_index.begin(), shuffled_index.end());
+	//for (int outer_loop = 1; outer_loop < vsize; outer_loop++)
+	for (int i = 0; i < vsize - 1; i++)
+	{
+		int outer_loop = shuffled_index[i];
 		// TRACE("outer loop #%d\n", outer_loop);
 		CP_MeshVertexPtr vertex = mesh->m_vertexArray[outer_loop];
 		CP_MeshFacePtr tri = NULL;
@@ -536,19 +513,34 @@ void gb_triangulation(CP_TriagleMesh *mesh, CP_Plane *plane)
 				}
 			}
 
-			gb_findClosestPoints(mesh, vertex, distances);
-			for (int i = 0; i < distances.size() && tri == NULL; i++)
+			if (tri == NULL)
 			{
-				for (int j = 0; j < distances[i].first->m_triagles.size() && tri == NULL; j++)
+				for (auto iter : mesh->m_triagleArray)
 				{
-					if (gb_testVertexInTriagle(distances[i].first->m_triagles[j], vertex))
+					if (iter->exits())
 					{
-						tri = distances[i].first->m_triagles[j];
-						//TRACE("####%d\n", distances[i].first->index);
-						break;
+						if (gb_testVertexInTriagle(iter, vertex))
+						{
+							tri = iter;
+							break;
+						}
 					}
 				}
 			}
+
+			//gb_findClosestPoints(mesh, vertex, distances);
+			//for (int i = 0; i < distances.size() && tri == NULL; i++)
+			//{
+			//	for (int j = 0; j < distances[i].first->m_triagles.size() && tri == NULL; j++)
+			//	{
+			//		if (gb_testVertexInTriagle(distances[i].first->m_triagles[j], vertex))
+			//		{
+			//			tri = distances[i].first->m_triagles[j];
+			//			//TRACE("####%d\n", distances[i].first->index);
+			//			break;
+			//		}
+			//	}
+			//}
 		}
 
 		gb_insertVertex(mesh, plane, tri, vertex);
@@ -634,18 +626,18 @@ bool gb_intersectEdgeTriagle(const CP_MeshEdgePtr &edge, const CP_MeshFacePtr &t
 	return false;
 }
 
-bool gb_orientationVertexEdge(const CP_MeshEdgePtr &edge, const CP_MeshVertexPtr &vertex)
-{
-	// http://www.cs.cmu.edu/~quake/robust.html
-	double ax = edge->m_a->m_x;
-	double ay = edge->m_a->m_y;
-	double bx = edge->m_b->m_x;
-	double by = edge->m_b->m_y;
-	double cx = vertex->m_x;
-	double cy = vertex->m_y;
-
-	return ((ax - cx) * (by - cy) - (ay - cy) * (bx - cx)) > 0;
-}
+//bool gb_orientationVertexEdge(const CP_MeshEdgePtr &edge, const CP_MeshVertexPtr &vertex)
+//{
+//	// http://www.cs.cmu.edu/~quake/robust.html
+//	double ax = edge->m_a->m_x;
+//	double ay = edge->m_a->m_y;
+//	double bx = edge->m_b->m_x;
+//	double by = edge->m_b->m_y;
+//	double cx = vertex->m_x;
+//	double cy = vertex->m_y;
+//
+//	return ((ax - cx) * (by - cy) - (ay - cy) * (bx - cx)) > 0;
+//}
 
 void gb_insertEdgeCDT(CP_TriagleMesh *mesh)
 {
@@ -678,7 +670,7 @@ void gb_insertEdgeCDT(CP_TriagleMesh *mesh)
 			{
 				if (vertex != edge->m_a && vertex != edge->m_b)
 				{
-					if (gb_orientationVertexEdge(edge, vertex))
+					if (gb_orientationVertexEdge(vertex->m_x, vertex->m_y, edge->m_a->m_x, edge->m_a->m_y, edge->m_b->m_x, edge->m_b->m_y))
 					{
 						gb_insertArrayByValue(upper_polygon, vertex);
 					}

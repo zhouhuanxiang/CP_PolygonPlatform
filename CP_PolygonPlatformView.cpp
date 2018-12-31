@@ -19,6 +19,8 @@
 #include "CP_PolygonPlatform.h"
 #endif
 
+#include <chrono>
+
 #include "MainFrm.h"
 
 #include "CP_PolygonPlatformDoc.h"
@@ -1772,12 +1774,22 @@ void CCP_PolygonPlatformView::OnViewTFace()
 			polygon = &pDoc->m_b;
 		if (polygon->m_pointArray.size())
 		{
-			gb_initTriagleMesh(&pDoc->m_triagleMesh, polygon);
-			pDoc->m_plane.mb_clear();
-			gb_initialization(&pDoc->m_triagleMesh, &pDoc->m_plane);
-			gb_triangulation(&pDoc->m_triagleMesh, &pDoc->m_plane);
-			gb_finalisation(&pDoc->m_triagleMesh);
-			gb_insertEdgeCDT(&pDoc->m_triagleMesh);
+			std::chrono::steady_clock::time_point tp1= std::chrono::steady_clock::now();
+			int count = 1;
+			for (int i = 0; i < count; i++)
+			{
+				gb_initTriagleMesh(&pDoc->m_triagleMesh, polygon);
+				pDoc->m_plane.mb_clear();
+				gb_initialization(&pDoc->m_triagleMesh, &pDoc->m_plane);
+				gb_triangulation(&pDoc->m_triagleMesh, &pDoc->m_plane);
+				gb_finalisation(&pDoc->m_triagleMesh);
+				gb_insertEdgeCDT(&pDoc->m_triagleMesh);
+			}
+			std::chrono::steady_clock::time_point tp2 = std::chrono::steady_clock::now();
+			long long time = std::chrono::duration_cast<std::chrono::microseconds>(tp2 - tp1).count();
+			char tmp1[200];
+			sprintf(tmp1, "总时间为 %f 秒", (double)time / count / 1000000.0);
+			mb_statusSetText(tmp1, tmp1);
 		}
 		else
 		{
@@ -1798,8 +1810,6 @@ void CCP_PolygonPlatformView::OnUpdateViewTFace(CCmdUI *pCmdUI)
 		return;
 	pCmdUI->SetCheck(pDoc->m_flagShowTriangleFace);
 }
-
-
 
 void CCP_PolygonPlatformView::OnCheck()
 {
@@ -1864,6 +1874,8 @@ void CCP_PolygonPlatformView::OnCheck()
 	{
 		mb_statusSetText("合法性检查正确。", "合法性检查正确");
 	}
+
+	Invalidate(); // 刷新
 }
 
 void gb_adjustOrientation(CP_Loop &loop, bool ccw)
