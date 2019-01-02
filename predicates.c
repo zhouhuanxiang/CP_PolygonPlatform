@@ -1465,10 +1465,10 @@ REAL *e;
 /*                                                                           */
 /*****************************************************************************/
 
-REAL orient2dfast(pa, pb, pc)
-REAL *pa;
-REAL *pb;
-REAL *pc;
+REAL orient2dfast(REAL *pa, REAL *pb, REAL *pc)
+//REAL *pa;
+//REAL *pb;
+//REAL *pc;
 {
 	REAL acx, bcx, acy, bcy;
 
@@ -2408,11 +2408,11 @@ REAL *pd;
 /*                                                                           */
 /*****************************************************************************/
 
-REAL incirclefast(pa, pb, pc, pd)
-REAL *pa;
-REAL *pb;
-REAL *pc;
-REAL *pd;
+REAL incirclefast(REAL *pa, REAL *pb, REAL *pc, REAL *pd)
+//REAL *pa;
+//REAL *pb;
+//REAL *pc;
+//REAL *pd;
 {
 	REAL adx, ady, bdx, bdy, cdx, cdy;
 	REAL abdet, bcdet, cadet;

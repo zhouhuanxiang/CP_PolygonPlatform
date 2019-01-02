@@ -224,34 +224,35 @@ void CCP_PolygonPlatformView::OnDraw(CDC* pDC)
 	GetClientRect(&r);
 	if (pDoc->m_flagShowTriangleFace)
 	{
-		for (const CP_MeshEdgePtr &e : pDoc->m_triagleMesh.m_edgeArray)
-		{
-			VT_PointArray pa(2);
-			pa[0] = CP_Point(e->m_a->m_x, e->m_a->m_y);
-			pa[1] = CP_Point(e->m_b->m_x, e->m_b->m_y);
-			gb_drawPointArrayLine(pDC, pa,
-				pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
-				200, 0, 255,
-				3);
-		}
-		// TODO
-		//for (auto &iter : pDoc->m_triagleMesh.m_triagleArray)
+		//for (const CP_MeshEdgePtr &e : pDoc->m_triagleMesh.m_edgeArray)
 		//{
-		//	if (iter->exits())
-		//	{
-		//		VT_PointArray pa(3);
-
-		//		for (int i = 0; i < 3; i++)
-		//		{
-		//			CP_MeshVertexPtr vertex = iter->m_vertex[i];
-		//			pa[i] = CP_Point(vertex->m_x, vertex->m_y);
-		//		}
-		//		gb_drawPointArrayLoop(pDC, pa,
-		//			pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
-		//			200, 0, 255,
-		//			3);
-		//	}
+		//	VT_PointArray pa(2);
+		//	pa[0] = CP_Point(e->m_a->m_x, e->m_a->m_y);
+		//	pa[1] = CP_Point(e->m_b->m_x, e->m_b->m_y);
+		//	gb_drawPointArrayLine(pDC, pa,
+		//		pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
+		//		200, 0, 255,
+		//		3);
 		//}
+
+		// TODO
+		for (const CP_MeshFacePtr &iter : pDoc->m_triagleMesh.m_finalTriagleArray)
+		{
+			if (iter->exits())
+			{
+				VT_PointArray pa(3);
+
+				for (int i = 0; i < 3; i++)
+				{
+					const CP_MeshVertexPtr &vertex = iter->m_vertex[i];
+					pa[i] = CP_Point(vertex->m_x, vertex->m_y);
+				}
+				gb_drawPointArrayLoop(pDC, pa,
+					pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
+					200, 0, 255,
+					3);
+			}
+		}
 	} // if (pDoc->m_flagShowTriangleFace)结束
 	if (!pDoc->m_flagShowSelect)
 	{
@@ -302,6 +303,10 @@ void CCP_PolygonPlatformView::OnDraw(CDC* pDC)
 				pDoc->m_scale, pDoc->m_translation, r.right, r.bottom,
 				50, 50, 50,
 				6); // B
+			char tmp[30];
+			sprintf(tmp, "x %lf y %lf", pDoc->m_a.m_pointArray[pDoc->m_flagSelectID].m_x, pDoc->m_a.m_pointArray[pDoc->m_flagSelectID].m_y);
+			TRACE(tmp);
+			mb_statusSetText(tmp, tmp);
 			break;
 		case 2: // 环。
 			if (pDoc->m_flagSelectPolygon == 0)
@@ -1776,19 +1781,43 @@ void CCP_PolygonPlatformView::OnViewTFace()
 		{
 			std::chrono::steady_clock::time_point tp1= std::chrono::steady_clock::now();
 			int count = 1;
-			for (int i = 0; i < count; i++)
-			{
+			//for (int i = 0; i < count; i++)
+			//{
 				gb_initTriagleMesh(&pDoc->m_triagleMesh, polygon);
+				std::chrono::steady_clock::time_point tp2 = std::chrono::steady_clock::now();
 				pDoc->m_plane.mb_clear();
+				std::chrono::steady_clock::time_point tp3 = std::chrono::steady_clock::now();
 				gb_initialization(&pDoc->m_triagleMesh, &pDoc->m_plane);
+				std::chrono::steady_clock::time_point tp4 = std::chrono::steady_clock::now();
 				gb_triangulation(&pDoc->m_triagleMesh, &pDoc->m_plane);
+				std::chrono::steady_clock::time_point tp5 = std::chrono::steady_clock::now();
+				
+				//pDoc->m_triagleMesh.m_finalTriagleArray = pDoc->m_triagleMesh.m_triagleArray;
+
 				gb_finalisation(&pDoc->m_triagleMesh);
+				std::chrono::steady_clock::time_point tp6 = std::chrono::steady_clock::now();
 				gb_insertEdgeCDT(&pDoc->m_triagleMesh);
-			}
-			std::chrono::steady_clock::time_point tp2 = std::chrono::steady_clock::now();
-			long long time = std::chrono::duration_cast<std::chrono::microseconds>(tp2 - tp1).count();
+				std::chrono::steady_clock::time_point tp7 = std::chrono::steady_clock::now();
+			//}
+			std::chrono::steady_clock::time_point tp8 = std::chrono::steady_clock::now();
+			long long time1 = std::chrono::duration_cast<std::chrono::microseconds>(tp2 - tp1).count();
+			long long time2 = std::chrono::duration_cast<std::chrono::microseconds>(tp3 - tp2).count();
+			long long time3 = std::chrono::duration_cast<std::chrono::microseconds>(tp4 - tp3).count();
+			long long time4 = std::chrono::duration_cast<std::chrono::microseconds>(tp5 - tp4).count();
+			long long time5 = std::chrono::duration_cast<std::chrono::microseconds>(tp6 - tp5).count();
+			long long time6 = std::chrono::duration_cast<std::chrono::microseconds>(tp7 - tp6).count();
+			long long time7 = std::chrono::duration_cast<std::chrono::microseconds>(tp8 - tp7).count();
+			long long time8 = std::chrono::duration_cast<std::chrono::microseconds>(tp8 - tp1).count();
+			TRACE("time1 %d\n", time1);
+			TRACE("time2 %d\n", time2);
+			TRACE("time3 %d\n", time3);
+			TRACE("time4 %d\n", time4);
+			TRACE("time5 %d\n", time5);
+			TRACE("time6 %d\n", time6);
+			TRACE("time7 %d\n", time7);
+			TRACE("time8 %d\n", time8);
 			char tmp1[200];
-			sprintf(tmp1, "总时间为 %f 秒", (double)time / count / 1000000.0);
+			sprintf(tmp1, "总时间为 %f 秒", (double)(time8) / count / 1000000.0);
 			mb_statusSetText(tmp1, tmp1);
 		}
 		else

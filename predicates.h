@@ -13,6 +13,10 @@ void exactinit();
 
 REAL orient2d(REAL *pa, REAL *pb, REAL *pc);
 
+REAL orient2dfast(REAL *pa, REAL *pb, REAL *pc);
+
 REAL incircle(REAL *pa, REAL *pb, REAL *pc, REAL *pd);
+
+REAL incirclefast(REAL *pa, REAL *pb, REAL *pc, REAL *pd);
 
 #endif

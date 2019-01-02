@@ -10,6 +10,8 @@ using namespace std;
 #include <iostream>
 #include <memory>
 #include <algorithm> 
+#include <omp.h>
+#include <chrono>
 
 #include "CP_Polygon.h"
 #include "CP_Plane.h"
@@ -18,6 +20,8 @@ extern "C"
 {
 #include "predicates.h"
 }
+
+#include "accurate_point_in_triangle.h"
 
 class CP_MeshFace;
 class CP_MeshVertex;
@@ -104,10 +108,13 @@ class CP_TriagleMesh
 public:
 	VT_MeshTriaglePointerArray m_triagleArray;
 	VT_MeshVertexPointerArray m_vertexArray;
-	VT_MeshEdgePointerArray m_edgeArray;
-	SET_MeshEdgePointerArray m_constrainedEdgeSet;
+	VT_MeshTriaglePointerArray m_finalTriagleArray;
+	VT_MeshEdgePointerArray m_constrainedEdgeSet;
+	map<pair<double, double>, int> m_insideVertexPool;
 	CP_Polygon* m_polygon;
 	double xmin, ymin;
+	long long time1, time2, time3, time4, time5, time6;
+
 public:
 	CP_TriagleMesh() : m_polygon(NULL) { }
 	void mb_clear();

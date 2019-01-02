@@ -51,6 +51,9 @@
     <ClInclude Include="predicates.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="accurate_point_in_triangle.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CP_PolygonPlatform.cpp">
@@ -78,6 +81,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="predicates.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="accurate_point_in_triangle.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

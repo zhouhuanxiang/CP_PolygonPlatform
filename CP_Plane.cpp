@@ -96,6 +96,10 @@ CP_Coord querypointPlane(CP_Plane &plane, CP_PlanePoint &point)
 
 void insertPlane(CP_Plane &plane, CP_PlanePoint &point)
 {
+	//if (point.m_index == 48)
+	//{
+	//	TRACE("debug\n");
+	//}
 	if (plane.m_data.size() < BRUTE_LIMIT)
 	{
 		plane.m_data.push_back(point);
@@ -198,7 +202,7 @@ void serachNearestVertex(CP_Plane &plane, CP_PlanePoint &point, vector<pair<int,
 			if (distance > d)
 			{
 				distance = d;
-				index = i;
+				index = plane.m_data[0].m_index;
 			}
 		}
 		points.push_back(pair<int, double>(index, distance));

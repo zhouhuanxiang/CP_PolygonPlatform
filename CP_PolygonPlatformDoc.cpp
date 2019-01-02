@@ -48,6 +48,7 @@ CCP_PolygonPlatformDoc::CCP_PolygonPlatformDoc()
 
 CCP_PolygonPlatformDoc::~CCP_PolygonPlatformDoc()
 {
+	m_triagleMesh.mb_clear();
 }
 
 //BOOL CCP_PolygonPlatformDoc::OnNewDocument()
